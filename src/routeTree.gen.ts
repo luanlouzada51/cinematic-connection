@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedDescobrirRouteImport } from './routes/_authenticated/descobrir'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedPessoasRouteImport } from './routes/_authenticated/pessoas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,40 +30,58 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDescobrirRoute = AuthenticatedDescobrirRouteImport.update({
+  id: '/descobrir',
+  path: '/descobrir',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPessoasRoute = AuthenticatedPessoasRouteImport.update({
+  id: '/pessoas',
+  path: '/pessoas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/descobrir': typeof AuthenticatedDescobrirRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pessoas': typeof AuthenticatedPessoasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/descobrir': typeof AuthenticatedDescobrirRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pessoas': typeof AuthenticatedPessoasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/descobrir': typeof AuthenticatedDescobrirRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/pessoas': typeof AuthenticatedPessoasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/onboarding'
+  fullPaths: '/' | '/auth' | '/descobrir' | '/onboarding' | '/pessoas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/onboarding'
+  to: '/' | '/auth' | '/descobrir' | '/onboarding' | '/pessoas'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/descobrir'
     | '/_authenticated/onboarding'
+    | '/_authenticated/pessoas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,6 +113,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/descobrir': {
+      id: '/_authenticated/descobrir'
+      path: '/descobrir'
+      fullPath: '/descobrir'
+      preLoaderRoute: typeof AuthenticatedDescobrirRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -100,15 +127,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pessoas': {
+      id: '/_authenticated/pessoas'
+      path: '/pessoas'
+      fullPath: '/pessoas'
+      preLoaderRoute: typeof AuthenticatedPessoasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDescobrirRoute: typeof AuthenticatedDescobrirRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPessoasRoute: typeof AuthenticatedPessoasRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDescobrirRoute: AuthenticatedDescobrirRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPessoasRoute: AuthenticatedPessoasRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
