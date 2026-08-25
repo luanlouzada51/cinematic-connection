@@ -63,10 +63,10 @@ function SettingsPage() {
 
   async function savePrivacy(field: "allow_matches" | "allow_private_chats", value: boolean) {
     if (!user) return;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ [field]: value })
-      .eq("id", user.id);
+    const patch =
+      field === "allow_matches" ? { allow_matches: value } : { allow_private_chats: value };
+    const { error } = await supabase.from("profiles").update(patch).eq("id", user.id);
+
     if (error) {
       toast.error(error.message);
       return;
