@@ -84,22 +84,26 @@ function AuthPage() {
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin,
+        extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
       });
       if (result.error) {
         toast.error(result.error.message ?? "Erro no login social");
         return;
       }
       if (result.redirected) return;
-      // Aguarda a sessão ser persistida antes de navegar (evita voltar para a tela de login).
-      for (let i = 0; i < 20; i++) {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          void navigate({ to: "/descobrir" });
+      // Confirma o usuário com o servidor antes de entrar na área protegida.
+      // O reload evita que o guard leia um estado anterior durante o retorno do popup.
+      for (let i = 0; i < 12; i++) {
+        const { data, error } = await supabase.auth.getUser();
+        if (!error && data.user) {
+          window.location.replace("/descobrir");
           return;
         }
         await new Promise((r) => setTimeout(r, 250));
       }
       toast.error("Não foi possível concluir o login. Tente novamente.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro no login social");
     } finally {
       setBusy(false);
     }
