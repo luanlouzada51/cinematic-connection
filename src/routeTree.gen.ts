@@ -16,11 +16,13 @@ import { Route as AuthenticatedChatsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedComunidadesRouteImport } from './routes/_authenticated/comunidades'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
 import { Route as AuthenticatedDescobrirRouteImport } from './routes/_authenticated/descobrir'
+import { Route as AuthenticatedListasRouteImport } from './routes/_authenticated/listas'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPessoasRouteImport } from './routes/_authenticated/pessoas'
 import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
+import { Route as AuthenticatedSessoesRouteImport } from './routes/_authenticated/sessoes'
 import { Route as AuthenticatedChatMatchIdRouteImport } from './routes/_authenticated/chat.$matchId'
 import { Route as AuthenticatedComunidadesSlugRouteImport } from './routes/_authenticated/comunidades.$slug'
 
@@ -59,6 +61,11 @@ const AuthenticatedDescobrirRoute = AuthenticatedDescobrirRouteImport.update({
   path: '/descobrir',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedListasRoute = AuthenticatedListasRouteImport.update({
+  id: '/listas',
+  path: '/listas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNotificacoesRoute =
   AuthenticatedNotificacoesRouteImport.update({
     id: '/notificacoes',
@@ -85,6 +92,11 @@ const AuthenticatedPremiumRoute = AuthenticatedPremiumRouteImport.update({
   path: '/premium',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSessoesRoute = AuthenticatedSessoesRouteImport.update({
+  id: '/sessoes',
+  path: '/sessoes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedChatMatchIdRoute =
   AuthenticatedChatMatchIdRouteImport.update({
     id: '/chat/$matchId',
@@ -105,11 +117,13 @@ export interface FileRoutesByFullPath {
   '/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
   '/config': typeof AuthenticatedConfigRoute
   '/descobrir': typeof AuthenticatedDescobrirRoute
+  '/listas': typeof AuthenticatedListasRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/pessoas': typeof AuthenticatedPessoasRoute
   '/premium': typeof AuthenticatedPremiumRoute
+  '/sessoes': typeof AuthenticatedSessoesRoute
   '/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
   '/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
 }
@@ -120,11 +134,13 @@ export interface FileRoutesByTo {
   '/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
   '/config': typeof AuthenticatedConfigRoute
   '/descobrir': typeof AuthenticatedDescobrirRoute
+  '/listas': typeof AuthenticatedListasRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/pessoas': typeof AuthenticatedPessoasRoute
   '/premium': typeof AuthenticatedPremiumRoute
+  '/sessoes': typeof AuthenticatedSessoesRoute
   '/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
   '/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
 }
@@ -137,11 +153,13 @@ export interface FileRoutesById {
   '/_authenticated/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/descobrir': typeof AuthenticatedDescobrirRoute
+  '/_authenticated/listas': typeof AuthenticatedListasRoute
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/pessoas': typeof AuthenticatedPessoasRoute
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
+  '/_authenticated/sessoes': typeof AuthenticatedSessoesRoute
   '/_authenticated/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
   '/_authenticated/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
 }
@@ -154,11 +172,13 @@ export interface FileRouteTypes {
     | '/comunidades'
     | '/config'
     | '/descobrir'
+    | '/listas'
     | '/notificacoes'
     | '/onboarding'
     | '/perfil'
     | '/pessoas'
     | '/premium'
+    | '/sessoes'
     | '/chat/$matchId'
     | '/comunidades/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -169,11 +189,13 @@ export interface FileRouteTypes {
     | '/comunidades'
     | '/config'
     | '/descobrir'
+    | '/listas'
     | '/notificacoes'
     | '/onboarding'
     | '/perfil'
     | '/pessoas'
     | '/premium'
+    | '/sessoes'
     | '/chat/$matchId'
     | '/comunidades/$slug'
   id:
@@ -185,11 +207,13 @@ export interface FileRouteTypes {
     | '/_authenticated/comunidades'
     | '/_authenticated/config'
     | '/_authenticated/descobrir'
+    | '/_authenticated/listas'
     | '/_authenticated/notificacoes'
     | '/_authenticated/onboarding'
     | '/_authenticated/perfil'
     | '/_authenticated/pessoas'
     | '/_authenticated/premium'
+    | '/_authenticated/sessoes'
     | '/_authenticated/chat/$matchId'
     | '/_authenticated/comunidades/$slug'
   fileRoutesById: FileRoutesById
@@ -251,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDescobrirRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/listas': {
+      id: '/_authenticated/listas'
+      path: '/listas'
+      fullPath: '/listas'
+      preLoaderRoute: typeof AuthenticatedListasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/notificacoes': {
       id: '/_authenticated/notificacoes'
       path: '/notificacoes'
@@ -284,6 +315,13 @@ declare module '@tanstack/react-router' {
       path: '/premium'
       fullPath: '/premium'
       preLoaderRoute: typeof AuthenticatedPremiumRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sessoes': {
+      id: '/_authenticated/sessoes'
+      path: '/sessoes'
+      fullPath: '/sessoes'
+      preLoaderRoute: typeof AuthenticatedSessoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chat/$matchId': {
@@ -322,11 +360,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedComunidadesRoute: typeof AuthenticatedComunidadesRouteWithChildren
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedDescobrirRoute: typeof AuthenticatedDescobrirRoute
+  AuthenticatedListasRoute: typeof AuthenticatedListasRoute
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPessoasRoute: typeof AuthenticatedPessoasRoute
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
+  AuthenticatedSessoesRoute: typeof AuthenticatedSessoesRoute
   AuthenticatedChatMatchIdRoute: typeof AuthenticatedChatMatchIdRoute
 }
 
@@ -335,11 +375,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedComunidadesRoute: AuthenticatedComunidadesRouteWithChildren,
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedDescobrirRoute: AuthenticatedDescobrirRoute,
+  AuthenticatedListasRoute: AuthenticatedListasRoute,
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPessoasRoute: AuthenticatedPessoasRoute,
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
+  AuthenticatedSessoesRoute: AuthenticatedSessoesRoute,
   AuthenticatedChatMatchIdRoute: AuthenticatedChatMatchIdRoute,
 }
 

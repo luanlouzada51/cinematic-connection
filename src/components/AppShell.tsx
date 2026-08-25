@@ -1,4 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Clapperboard, Flame, Heart, MessageCircle, User, Users, Crown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +17,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const { profile } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (profile && !profile.onboarding_done && pathname !== "/onboarding") {
+      void navigate({ to: "/onboarding" });
+    }
+  }, [profile, pathname, navigate]);
+
 
   return (
     <div className="min-h-screen bg-background">
