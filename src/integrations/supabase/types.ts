@@ -755,7 +755,6 @@ export type Database = {
       }
     }
     Functions: {
-      claim_owner_admin: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
