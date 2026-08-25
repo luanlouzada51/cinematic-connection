@@ -530,6 +530,7 @@ export type Database = {
       titles: {
         Row: {
           cast_list: string | null
+          country: string | null
           created_at: string
           genre_slugs: string[]
           id: string
@@ -541,6 +542,7 @@ export type Database = {
         }
         Insert: {
           cast_list?: string | null
+          country?: string | null
           created_at?: string
           genre_slugs?: string[]
           id?: string
@@ -552,6 +554,7 @@ export type Database = {
         }
         Update: {
           cast_list?: string | null
+          country?: string | null
           created_at?: string
           genre_slugs?: string[]
           id?: string
