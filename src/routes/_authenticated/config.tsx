@@ -9,6 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/config")({
@@ -34,7 +35,7 @@ const LANGS: { code: Lang; label: string }[] = [
 
 function SettingsPage() {
   const { t, lang, setLang } = useI18n();
-  const { user } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [blocked, setBlocked] = useState<{ id: string; name: string }[]>([]);
   const [pwd, setPwd] = useState("");
   const [pwd2, setPwd2] = useState("");
@@ -59,6 +60,20 @@ function SettingsPage() {
       setBlocked((profs ?? []).map((p) => ({ id: p.id, name: p.display_name })));
     })();
   }, [user]);
+
+  async function savePrivacy(field: "allow_matches" | "allow_private_chats", value: boolean) {
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ [field]: value })
+      .eq("id", user.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await refreshProfile();
+    toast.success(t("saved"));
+  }
 
   async function changeLang(l: Lang) {
     setLang(l);
