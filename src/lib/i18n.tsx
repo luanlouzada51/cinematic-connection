@@ -484,8 +484,18 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem("mm-lang") as Lang | null;
-    if (stored && ["pt", "en", "es"].includes(stored)) setLangState(stored);
+    if (stored && ["pt", "en", "es"].includes(stored)) {
+      setLangState(stored);
+      return;
+    }
+    // Tradução automática: segue o idioma do dispositivo.
+    const nav = [...(window.navigator.languages ?? []), window.navigator.language].filter(Boolean);
+    const detected = nav
+      .map((l) => l.slice(0, 2).toLowerCase())
+      .find((l): l is Lang => l === "pt" || l === "en" || l === "es");
+    if (detected) setLangState(detected);
   }, []);
+
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
