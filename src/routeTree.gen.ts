@@ -13,10 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedChatsRouteImport } from './routes/_authenticated/chats'
+import { Route as AuthenticatedComunidadesRouteImport } from './routes/_authenticated/comunidades'
 import { Route as AuthenticatedDescobrirRouteImport } from './routes/_authenticated/descobrir'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPessoasRouteImport } from './routes/_authenticated/pessoas'
 import { Route as AuthenticatedChatMatchIdRouteImport } from './routes/_authenticated/chat.$matchId'
+import { Route as AuthenticatedComunidadesSlugRouteImport } from './routes/_authenticated/comunidades.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -37,6 +39,12 @@ const AuthenticatedChatsRoute = AuthenticatedChatsRouteImport.update({
   path: '/chats',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedComunidadesRoute =
+  AuthenticatedComunidadesRouteImport.update({
+    id: '/comunidades',
+    path: '/comunidades',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDescobrirRoute = AuthenticatedDescobrirRouteImport.update({
   id: '/descobrir',
   path: '/descobrir',
@@ -58,24 +66,34 @@ const AuthenticatedChatMatchIdRoute =
     path: '/chat/$matchId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedComunidadesSlugRoute =
+  AuthenticatedComunidadesSlugRouteImport.update({
+    id: '/$slug',
+    path: '/$slug',
+    getParentRoute: () => AuthenticatedComunidadesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chats': typeof AuthenticatedChatsRoute
+  '/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
   '/descobrir': typeof AuthenticatedDescobrirRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pessoas': typeof AuthenticatedPessoasRoute
   '/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
+  '/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chats': typeof AuthenticatedChatsRoute
+  '/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
   '/descobrir': typeof AuthenticatedDescobrirRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pessoas': typeof AuthenticatedPessoasRoute
   '/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
+  '/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -83,10 +101,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/chats': typeof AuthenticatedChatsRoute
+  '/_authenticated/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
   '/_authenticated/descobrir': typeof AuthenticatedDescobrirRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/pessoas': typeof AuthenticatedPessoasRoute
   '/_authenticated/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
+  '/_authenticated/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -94,29 +114,35 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/chats'
+    | '/comunidades'
     | '/descobrir'
     | '/onboarding'
     | '/pessoas'
     | '/chat/$matchId'
+    | '/comunidades/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/chats'
+    | '/comunidades'
     | '/descobrir'
     | '/onboarding'
     | '/pessoas'
     | '/chat/$matchId'
+    | '/comunidades/$slug'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/chats'
+    | '/_authenticated/comunidades'
     | '/_authenticated/descobrir'
     | '/_authenticated/onboarding'
     | '/_authenticated/pessoas'
     | '/_authenticated/chat/$matchId'
+    | '/_authenticated/comunidades/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/comunidades': {
+      id: '/_authenticated/comunidades'
+      path: '/comunidades'
+      fullPath: '/comunidades'
+      preLoaderRoute: typeof AuthenticatedComunidadesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/descobrir': {
       id: '/_authenticated/descobrir'
       path: '/descobrir'
@@ -183,11 +216,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatMatchIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/comunidades/$slug': {
+      id: '/_authenticated/comunidades/$slug'
+      path: '/$slug'
+      fullPath: '/comunidades/$slug'
+      preLoaderRoute: typeof AuthenticatedComunidadesSlugRouteImport
+      parentRoute: typeof AuthenticatedComunidadesRoute
+    }
   }
 }
 
+interface AuthenticatedComunidadesRouteChildren {
+  AuthenticatedComunidadesSlugRoute: typeof AuthenticatedComunidadesSlugRoute
+}
+
+const AuthenticatedComunidadesRouteChildren: AuthenticatedComunidadesRouteChildren =
+  {
+    AuthenticatedComunidadesSlugRoute: AuthenticatedComunidadesSlugRoute,
+  }
+
+const AuthenticatedComunidadesRouteWithChildren =
+  AuthenticatedComunidadesRoute._addFileChildren(
+    AuthenticatedComunidadesRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatsRoute: typeof AuthenticatedChatsRoute
+  AuthenticatedComunidadesRoute: typeof AuthenticatedComunidadesRouteWithChildren
   AuthenticatedDescobrirRoute: typeof AuthenticatedDescobrirRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPessoasRoute: typeof AuthenticatedPessoasRoute
@@ -196,6 +251,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatsRoute: AuthenticatedChatsRoute,
+  AuthenticatedComunidadesRoute: AuthenticatedComunidadesRouteWithChildren,
   AuthenticatedDescobrirRoute: AuthenticatedDescobrirRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPessoasRoute: AuthenticatedPessoasRoute,
