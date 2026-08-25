@@ -48,11 +48,28 @@ function AuthPage() {
           password,
           options: { emailRedirectTo: `${window.location.origin}/descobrir` },
         });
-        if (error) throw error;
+        if (error) {
+          if (error.message.toLowerCase().includes("already registered")) {
+            throw new Error(
+              "Esse e-mail já tem conta. Entre com a senha ou use 'Continuar com Google'.",
+            );
+          }
+          if (error.message.toLowerCase().includes("weak")) {
+            throw new Error("Senha muito fraca ou vazada. Escolha uma senha mais forte.");
+          }
+          throw error;
+        }
         toast.success("Conta criada!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          if (error.message.toLowerCase().includes("invalid login credentials")) {
+            throw new Error(
+              "E-mail ou senha incorretos. Se você criou a conta com Google, use 'Continuar com Google'.",
+            );
+          }
+          throw error;
+        }
       }
       void navigate({ to: "/descobrir" });
     } catch (err) {
@@ -63,16 +80,31 @@ function AuthPage() {
   }
 
   async function social(provider: "google" | "apple") {
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error(result.error.message ?? "Erro no login social");
-      return;
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error(result.error.message ?? "Erro no login social");
+        return;
+      }
+      if (result.redirected) return;
+      // Aguarda a sessão ser persistida antes de navegar (evita voltar para a tela de login).
+      for (let i = 0; i < 20; i++) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          void navigate({ to: "/descobrir" });
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      toast.error("Não foi possível concluir o login. Tente novamente.");
+    } finally {
+      setBusy(false);
     }
-    if (result.redirected) return;
-    void navigate({ to: "/descobrir" });
   }
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-reel px-5 py-10">
