@@ -31,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
           <Link to="/descobrir" className="flex items-center gap-2">
-            <Flame className="size-5 text-primary" />
+            <img src={logoIcon.url} alt="Movie Match" className="size-7 rounded-lg" />
             <span className="font-display text-2xl leading-none text-gradient-cine">
               Movie Match
             </span>
