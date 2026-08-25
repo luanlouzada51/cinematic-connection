@@ -87,23 +87,42 @@ function AuthPage() {
         ...(provider === "google" ? { extraParams: { prompt: "select_account" } } : {}),
       });
       if (result.error) {
-        toast.error(result.error.message ?? "Erro no login social");
+        const raw = (result.error.message ?? "").toLowerCase();
+        if (raw.includes("access_denied") || raw.includes("cancel") || raw.includes("closed")) {
+          toast.error("Login cancelado. Autorize o acesso para continuar.");
+        } else if (raw.includes("popup") || raw.includes("blocked")) {
+          toast.error("O popup foi bloqueado. Libere popups para este site e tente de novo.");
+        } else if (raw.includes("email")) {
+          toast.error("O Google não compartilhou seu e-mail. Autorize o e-mail ou use e-mail e senha.");
+        } else if (raw.includes("provider") || raw.includes("unsupported")) {
+          toast.error("Login com Google indisponível no momento. Use e-mail e senha.");
+        } else {
+          toast.error(result.error.message ?? "Não foi possível entrar com Google.");
+        }
         return;
       }
       if (result.redirected) return;
       // Confirma o usuário com o servidor antes de entrar na área protegida.
-      // O reload evita que o guard leia um estado anterior durante o retorno do popup.
       for (let i = 0; i < 12; i++) {
         const { data, error } = await supabase.auth.getUser();
         if (!error && data.user) {
+          if (!data.user.email) {
+            toast.error("Sua conta Google não retornou e-mail. Complete o perfil nas configurações.");
+          }
           window.location.replace("/descobrir");
           return;
         }
         await new Promise((r) => setTimeout(r, 250));
       }
-      toast.error("Não foi possível concluir o login. Tente novamente.");
+      toast.error("Não recebemos a confirmação do Google. Tente novamente ou entre com e-mail e senha.");
+      void navigate({ to: "/auth" });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro no login social");
+      const msg = error instanceof Error ? error.message : "";
+      toast.error(
+        /cancel|closed|denied/i.test(msg)
+          ? "Login cancelado antes de concluir."
+          : msg || "Erro no login social",
+      );
     } finally {
       setBusy(false);
     }
