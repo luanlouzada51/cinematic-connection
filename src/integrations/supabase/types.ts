@@ -765,6 +765,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_matched_with: { Args: { _other: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
