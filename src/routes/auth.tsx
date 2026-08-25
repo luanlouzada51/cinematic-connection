@@ -147,7 +147,7 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-reel px-5 py-10">
       <div className="w-full max-w-sm">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <Flame className="size-6 text-primary" />
+          <img src={logoIcon.url} alt="Movie Match" className="size-10 rounded-xl" />
           <span className="font-display text-3xl leading-none text-gradient-cine">Movie Match</span>
         </Link>
 

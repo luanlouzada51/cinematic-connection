@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Clapperboard, Flame, Heart, MessageCircle, User, Users, Crown } from "lucide-react";
+import { Clapperboard, Heart, MessageCircle, User, Users, Crown } from "lucide-react";
+import logoIcon from "@/assets/movie-match-icon.png.asset.json";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
