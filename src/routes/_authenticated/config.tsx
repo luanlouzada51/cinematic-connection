@@ -72,7 +72,7 @@ function SettingsPage() {
       return;
     }
     await refreshProfile();
-    toast.success(t("saved"));
+    toast.success(t("save"));
   }
 
   async function changeLang(l: Lang) {
