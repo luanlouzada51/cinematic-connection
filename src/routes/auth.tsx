@@ -102,20 +102,31 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-      // Confirma o usuário com o servidor antes de entrar na área protegida.
-      for (let i = 0; i < 12; i++) {
-        const { data, error } = await supabase.auth.getUser();
-        if (!error && data.user) {
-          if (!data.user.email) {
-            toast.error("Sua conta Google não retornou e-mail. Complete o perfil nas configurações.");
-          }
-          window.location.replace("/descobrir");
-          return;
-        }
-        await new Promise((r) => setTimeout(r, 250));
+
+      // O helper já grava os tokens. Confirme que a sessão ficou disponível
+      // antes de navegar, sem recarregar a página (o reload pode perder a
+      // sincronização do armazenamento no preview incorporado).
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        toast.error("O Google autorizou o acesso, mas a sessão não foi salva. Tente novamente.");
+        return;
       }
-      toast.error("Não recebemos a confirmação do Google. Tente novamente ou entre com e-mail e senha.");
-      void navigate({ to: "/auth" });
+
+      const { data: userData, error: userError } = await supabase.auth.getUser(
+        sessionData.session.access_token,
+      );
+      if (userError || !userData.user) {
+        await supabase.auth.signOut({ scope: "local" });
+        toast.error("A sessão recebida do Google é inválida. Tente entrar novamente.");
+        return;
+      }
+      if (!userData.user.email) {
+        await supabase.auth.signOut({ scope: "local" });
+        toast.error("O Google não compartilhou seu e-mail. Autorize o e-mail para continuar.");
+        return;
+      }
+
+      await navigate({ to: "/descobrir", replace: true });
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
       toast.error(
