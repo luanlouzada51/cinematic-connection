@@ -126,7 +126,7 @@ function People() {
         liked,
         super_like: superLike,
       });
-      if (error) return toast.error(error.message);
+      if (error) { toast.error(error.message); return; }
       if (liked) {
         const { data: match } = await supabase
           .from("matches")
@@ -223,7 +223,7 @@ function People() {
           aria-label={t("superLike")}
           disabled={!current}
           onClick={() => {
-            if (!profile?.is_premium) return toast.error(t("premiumPerks"));
+            if (!profile?.is_premium) { toast.error(t("premiumPerks")); return; }
             void decide(true, true);
           }}
         >

@@ -6,7 +6,7 @@ export function Poster({
   alt,
   className,
 }: {
-  url?: string | null;
+  url?: string | null | undefined;
   alt: string;
   className?: string;
 }) {
