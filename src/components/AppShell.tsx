@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Clapperboard, Flame, Heart, MessageCircle, User, Users, Crown } from "lucide-react";
+import { Clapperboard, Heart, MessageCircle, User, Users, Crown } from "lucide-react";
+import logoIcon from "@/assets/movie-match-icon.png.asset.json";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
           <Link to="/descobrir" className="flex items-center gap-2">
-            <Flame className="size-5 text-primary" />
+            <img src={logoIcon.url} alt="Movie Match" className="size-7 rounded-lg" />
             <span className="font-display text-2xl leading-none text-gradient-cine">
               Movie Match
             </span>

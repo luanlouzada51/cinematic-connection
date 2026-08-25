@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Clapperboard, Heart, MessageCircle, Users, Star, Flame } from "lucide-react";
+import { Clapperboard, Heart, MessageCircle, Users, Star } from "lucide-react";
+import logoIcon from "@/assets/movie-match-icon.png.asset.json";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ function Landing() {
     <div className="min-h-screen bg-reel">
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-5">
         <div className="flex items-center gap-2">
-          <Flame className="size-6 text-primary" />
+          <img src={logoIcon.url} alt="Movie Match" className="size-9 rounded-xl" />
           <span className="font-display text-3xl leading-none text-gradient-cine">Movie Match</span>
         </div>
         <Button asChild variant="ghost" size="sm">
