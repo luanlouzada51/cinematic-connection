@@ -88,7 +88,7 @@ function Lists() {
     const { error } = await supabase
       .from("lists")
       .insert({ owner_id: user.id, name: name.trim(), description: desc.trim() || null });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setName("");
     setDesc("");
     await load();
@@ -96,7 +96,7 @@ function Lists() {
 
   async function addTitle(listId: string, titleId: string) {
     const { error } = await supabase.from("list_items").insert({ list_id: listId, title_id: titleId });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await load();
   }
 

@@ -109,14 +109,14 @@ function Parties() {
   }, [openParty]);
 
   async function create() {
-    if (!user || !titleId || !when) return toast.error(t("when"));
+    if (!user || !titleId || !when) { toast.error(t("when")); return; }
     const { error } = await supabase.from("watch_parties").insert({
       host_id: user.id,
       title_id: titleId,
       scheduled_at: new Date(when).toISOString(),
       note: note.trim() || null,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setTitleId("");
     setWhen("");
     setNote("");
@@ -140,11 +140,11 @@ function Parties() {
   async function send() {
     if (!user || !openParty || !text.trim()) return;
     const mod = moderateText(text, lang);
-    if (!mod.ok) return toast.error(mod.message);
+    if (!mod.ok) { toast.error(mod.message); return; }
     const { error } = await supabase
       .from("watch_party_messages")
       .insert({ party_id: openParty.id, sender_id: user.id, body: text.trim() });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setText("");
   }
 

@@ -150,7 +150,7 @@ function Discover() {
     const { error } = await supabase
       .from("ratings")
       .upsert({ user_id: user.id, title_id: detail.id, stars }, { onConflict: "user_id,title_id" });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${t("yourRating")}: ${stars}★`);
     await refreshProfile();
   }
@@ -284,7 +284,7 @@ function SwipeCard({
 }: {
   title: Title;
   genreLabel: (s: string) => string;
-  score?: Score;
+  score?: Score | undefined;
   onDecide: (interested: boolean) => void;
   onOpen: () => void;
 }) {

@@ -110,7 +110,7 @@ function Community() {
     if (!user) return;
     if (!form.title.trim()) return;
     const mod = moderateText(`${form.title} ${form.body}`, lang);
-    if (!mod.ok) return toast.error(mod.message);
+    if (!mod.ok) { toast.error(mod.message); return; }
     const { error } = await supabase.from("posts").insert({
       genre_slug: slug,
       kind,
@@ -118,7 +118,7 @@ function Community() {
       title: form.title.trim(),
       body: form.body.trim(),
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setForm({ title: "", body: "" });
     toast.success(t("publish"));
     await load();
@@ -138,13 +138,13 @@ function Community() {
   async function addComment(postId: string) {
     if (!user || !commentText.trim()) return;
     const mod = moderateText(commentText, lang);
-    if (!mod.ok) return toast.error(mod.message);
+    if (!mod.ok) { toast.error(mod.message); return; }
     const { data, error } = await supabase
       .from("comments")
       .insert({ post_id: postId, author_id: user.id, body: commentText.trim() })
       .select("id,post_id,body,author_id")
       .single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setComments((c) => ({ ...c, [postId]: [...(c[postId] ?? []), data as Comment] }));
     setCommentText("");
   }

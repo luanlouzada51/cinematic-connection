@@ -56,7 +56,7 @@ function Premium() {
   async function toggle(next: boolean) {
     if (!user) return;
     const { error } = await supabase.from("profiles").update({ is_premium: next }).eq("id", user.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await refreshProfile();
     toast.success(next ? t("premiumActive") : t("cancelPremium"));
   }

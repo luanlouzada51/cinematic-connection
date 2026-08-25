@@ -67,7 +67,7 @@ function Onboarding() {
 
   async function save() {
     if (!user) return;
-    if (!form.display_name.trim()) return toast.error(t("name"));
+    if (!form.display_name.trim()) { toast.error(t("name")); return; }
     setBusy(true);
     const { error } = await supabase
       .from("profiles")
@@ -84,7 +84,7 @@ function Onboarding() {
       })
       .eq("id", user.id);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await refreshProfile();
     void navigate({ to: "/descobrir" });
   }
