@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
 import { AdSlot } from "@/components/AdSlot";
-import { Poster } from "@/components/Poster";
+import { PhotoImg } from "@/components/PhotoImg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,9 @@ type Person = {
   age: number | null;
   city: string | null;
   bio: string | null;
+  gender: string | null;
+  interested_in: string[];
+  photos: string[];
   favorite_genres: string[];
   taste_vector: Record<string, number>;
   affinity: number;
@@ -77,9 +80,12 @@ function People() {
     const [{ data: people }, { data: swipes }, { data: blocked }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id,display_name,avatar_url,age,city,bio,favorite_genres,taste_vector")
+        .select(
+          "id,display_name,avatar_url,age,city,bio,gender,interested_in,photos,favorite_genres,taste_vector",
+        )
         .neq("id", user.id)
         .eq("onboarding_done", true)
+        .eq("allow_matches", true)
         .limit(300),
       supabase.from("person_swipes").select("target_id").eq("swiper_id", user.id),
       supabase.from("blocks").select("blocked_id").eq("blocker_id", user.id),
@@ -92,6 +98,14 @@ function People() {
     const list = (people ?? [])
       .filter((p) => !skip.has(p.id))
       .filter((p) => {
+        const mineWants = profile?.interested_in ?? [];
+        if (mineWants.length && !mineWants.includes("both") && p.gender) {
+          if (!mineWants.includes(p.gender)) return false;
+        }
+        const theirWants = (p.interested_in ?? []) as string[];
+        if (theirWants.length && !theirWants.includes("both") && profile?.gender) {
+          if (!theirWants.includes(profile.gender)) return false;
+        }
         if (profile?.is_premium) {
           if (p.age && (p.age < Number(minAge) || p.age > Number(maxAge))) return false;
           if (sameCity && profile.city && p.city !== profile.city) return false;
@@ -100,6 +114,8 @@ function People() {
       })
       .map((p) => ({
         ...p,
+        photos: (p.photos ?? []) as string[],
+        interested_in: (p.interested_in ?? []) as string[],
         taste_vector: (p.taste_vector ?? {}) as Record<string, number>,
         affinity: cosine(mine, (p.taste_vector ?? {}) as Record<string, number>),
       }))
@@ -148,6 +164,11 @@ function People() {
 
   return (
     <AppShell>
+      {profile && !profile.allow_matches && (
+        <p className="mb-3 rounded-2xl border border-border bg-card p-3 text-sm text-muted-foreground">
+          {t("matchesDisabled")}
+        </p>
+      )}
       <div className="mb-3 flex items-center justify-between">
         <h1 className="text-3xl">{t("people")}</h1>
         <Button size="sm" variant="ghost" onClick={() => setShowFilters((v) => !v)}>
@@ -278,7 +299,11 @@ function PersonCard({ person, onDecide }: { person: Person; onDecide: (liked: bo
         }
       }}
     >
-      <Poster url={person.avatar_url} alt={person.display_name} className="h-full w-full" />
+      <PhotoImg
+        path={person.photos?.[0] ?? person.avatar_url}
+        alt={person.display_name}
+        className="h-full w-full"
+      />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-5">
         <span className="mb-2 inline-block rounded-full bg-primary/90 px-2.5 py-1 text-xs font-semibold text-primary-foreground">
