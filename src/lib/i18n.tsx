@@ -133,6 +133,39 @@ const dict = {
     notifications: "Notificações",
     noNotifications: "Nada por aqui.",
     empty: "Nada por aqui ainda.",
+    genderMale: "Masculino",
+    genderFemale: "Feminino",
+    genderOther: "Prefiro não dizer",
+    interestedIn: "Interessado em",
+    interestMen: "Homens",
+    interestWomen: "Mulheres",
+    interestBoth: "Ambos",
+    photos: "Fotos do perfil",
+    photosSub: "Envie até 5 fotos. A primeira será sua foto principal.",
+    addPhoto: "Carregar foto",
+    uploading: "Enviando...",
+    maxPhotos: "Máximo de 5 fotos.",
+    removePhoto: "Remover foto",
+    editProfile: "Editar perfil",
+    markWatched: "Marcar como assistido",
+    watched: "Assistido",
+    removeFromWatchlist: "Remover da lista",
+    rateNow: "Como foi o filme?",
+    allowMatches: "Aceitar matches",
+    allowMatchesSub: "Desative para não aparecer nem receber novos matches.",
+    allowPrivateChats: "Aceitar chats privados",
+    allowPrivateChatsSub: "Desative para bloquear conversas privadas.",
+    matchesDisabled: "Você desativou matches nas configurações.",
+    admin: "Admin",
+    adminPanel: "Painel do administrador",
+    totalUsers: "Usuários",
+    totalTitles: "Títulos no catálogo",
+    totalReports: "Denúncias",
+    latestReports: "Últimas denúncias",
+    latestUsers: "Últimos usuários",
+    country: "País",
+    signupPasswordHint: "Mínimo de 8 caracteres.",
+
   },
   en: {
     appName: "Movie Match",
@@ -252,6 +285,39 @@ const dict = {
     notifications: "Notifications",
     noNotifications: "Nothing here.",
     empty: "Nothing here yet.",
+    genderMale: "Male",
+    genderFemale: "Female",
+    genderOther: "Prefer not to say",
+    interestedIn: "Interested in",
+    interestMen: "Men",
+    interestWomen: "Women",
+    interestBoth: "Both",
+    photos: "Profile photos",
+    photosSub: "Upload up to 5 photos. The first one is your main photo.",
+    addPhoto: "Upload photo",
+    uploading: "Uploading...",
+    maxPhotos: "Maximum of 5 photos.",
+    removePhoto: "Remove photo",
+    editProfile: "Edit profile",
+    markWatched: "Mark as watched",
+    watched: "Watched",
+    removeFromWatchlist: "Remove from list",
+    rateNow: "How was the film?",
+    allowMatches: "Allow matches",
+    allowMatchesSub: "Turn off to stop appearing and receiving new matches.",
+    allowPrivateChats: "Allow private chats",
+    allowPrivateChatsSub: "Turn off to block private conversations.",
+    matchesDisabled: "You turned matches off in settings.",
+    admin: "Admin",
+    adminPanel: "Admin panel",
+    totalUsers: "Users",
+    totalTitles: "Catalog titles",
+    totalReports: "Reports",
+    latestReports: "Latest reports",
+    latestUsers: "Latest users",
+    country: "Country",
+    signupPasswordHint: "At least 8 characters.",
+
   },
   es: {
     appName: "Movie Match",
@@ -371,6 +437,39 @@ const dict = {
     notifications: "Notificaciones",
     noNotifications: "Nada por aquí.",
     empty: "Nada por aquí todavía.",
+    genderMale: "Masculino",
+    genderFemale: "Femenino",
+    genderOther: "Prefiero no decirlo",
+    interestedIn: "Interesado en",
+    interestMen: "Hombres",
+    interestWomen: "Mujeres",
+    interestBoth: "Ambos",
+    photos: "Fotos de perfil",
+    photosSub: "Sube hasta 5 fotos. La primera será tu foto principal.",
+    addPhoto: "Subir foto",
+    uploading: "Subiendo...",
+    maxPhotos: "Máximo de 5 fotos.",
+    removePhoto: "Quitar foto",
+    editProfile: "Editar perfil",
+    markWatched: "Marcar como vista",
+    watched: "Vista",
+    removeFromWatchlist: "Quitar de la lista",
+    rateNow: "¿Qué te pareció?",
+    allowMatches: "Aceptar matches",
+    allowMatchesSub: "Desactiva para no aparecer ni recibir nuevos matches.",
+    allowPrivateChats: "Aceptar chats privados",
+    allowPrivateChatsSub: "Desactiva para bloquear conversaciones privadas.",
+    matchesDisabled: "Desactivaste los matches en ajustes.",
+    admin: "Admin",
+    adminPanel: "Panel de administrador",
+    totalUsers: "Usuarios",
+    totalTitles: "Títulos del catálogo",
+    totalReports: "Denuncias",
+    latestReports: "Últimas denuncias",
+    latestUsers: "Últimos usuarios",
+    country: "País",
+    signupPasswordHint: "Mínimo 8 caracteres.",
+
   },
 } as const;
 
@@ -385,8 +484,18 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem("mm-lang") as Lang | null;
-    if (stored && ["pt", "en", "es"].includes(stored)) setLangState(stored);
+    if (stored && ["pt", "en", "es"].includes(stored)) {
+      setLangState(stored);
+      return;
+    }
+    // Tradução automática: segue o idioma do dispositivo.
+    const nav = [...(window.navigator.languages ?? []), window.navigator.language].filter(Boolean);
+    const detected = nav
+      .map((l) => l.slice(0, 2).toLowerCase())
+      .find((l): l is Lang => l === "pt" || l === "en" || l === "es");
+    if (detected) setLangState(detected);
   }, []);
+
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);

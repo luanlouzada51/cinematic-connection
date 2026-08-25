@@ -32,6 +32,7 @@ function AuthPage() {
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -43,6 +44,8 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "up") {
+        if (password.length < 8) throw new Error(t("passwordTooShort"));
+        if (password !== password2) throw new Error(t("passwordMismatch"));
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -189,6 +192,20 @@ function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+            {mode === "up" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="password2">{t("confirmPassword")}</Label>
+                <Input
+                  id="password2"
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password2}
+                  onChange={(e) => setPassword2(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">{t("signupPasswordHint")}</p>
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={busy}>
               {mode === "in" ? t("signIn") : t("signUp")}
             </Button>

@@ -392,54 +392,69 @@ export type Database = {
       profiles: {
         Row: {
           age: number | null
+          allow_matches: boolean
+          allow_private_chats: boolean
           avatar_url: string | null
           bio: string | null
           city: string | null
+          country: string | null
           created_at: string
           display_name: string
           favorite_genres: string[]
           gender: string | null
           id: string
+          interested_in: string[]
           is_premium: boolean
           language: string
           last_rating_date: string | null
           onboarding_done: boolean
+          photos: string[]
           streak_count: number
           taste_vector: Json
           updated_at: string
         }
         Insert: {
           age?: number | null
+          allow_matches?: boolean
+          allow_private_chats?: boolean
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string
           display_name?: string
           favorite_genres?: string[]
           gender?: string | null
           id: string
+          interested_in?: string[]
           is_premium?: boolean
           language?: string
           last_rating_date?: string | null
           onboarding_done?: boolean
+          photos?: string[]
           streak_count?: number
           taste_vector?: Json
           updated_at?: string
         }
         Update: {
           age?: number | null
+          allow_matches?: boolean
+          allow_private_chats?: boolean
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string
           display_name?: string
           favorite_genres?: string[]
           gender?: string | null
           id?: string
+          interested_in?: string[]
           is_premium?: boolean
           language?: string
           last_rating_date?: string | null
           onboarding_done?: boolean
+          photos?: string[]
           streak_count?: number
           taste_vector?: Json
           updated_at?: string
@@ -515,6 +530,7 @@ export type Database = {
       titles: {
         Row: {
           cast_list: string | null
+          country: string | null
           created_at: string
           genre_slugs: string[]
           id: string
@@ -526,6 +542,7 @@ export type Database = {
         }
         Insert: {
           cast_list?: string | null
+          country?: string | null
           created_at?: string
           genre_slugs?: string[]
           id?: string
@@ -537,6 +554,7 @@ export type Database = {
         }
         Update: {
           cast_list?: string | null
+          country?: string | null
           created_at?: string
           genre_slugs?: string[]
           id?: string
@@ -694,16 +712,22 @@ export type Database = {
           created_at: string
           title_id: string
           user_id: string
+          watched: boolean
+          watched_at: string | null
         }
         Insert: {
           created_at?: string
           title_id: string
           user_id: string
+          watched?: boolean
+          watched_at?: string | null
         }
         Update: {
           created_at?: string
           title_id?: string
           user_id?: string
+          watched?: boolean
+          watched_at?: string | null
         }
         Relationships: [
           {

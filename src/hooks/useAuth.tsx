@@ -8,8 +8,13 @@ export type Profile = {
   avatar_url: string | null;
   age: number | null;
   city: string | null;
+  country: string | null;
   bio: string | null;
   gender: string | null;
+  interested_in: string[];
+  photos: string[];
+  allow_matches: boolean;
+  allow_private_chats: boolean;
   favorite_genres: string[];
   language: string;
   is_premium: boolean;
@@ -22,6 +27,7 @@ type Ctx = {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  isAdmin: boolean;
   loading: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -31,19 +37,26 @@ const AuthContext = createContext<Ctx>({
   user: null,
   session: null,
   profile: null,
+  isAdmin: false,
   loading: true,
   refreshProfile: async () => {},
   signOut: async () => {},
 });
 
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async (uid: string) => {
-    const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
+    const [{ data }, { data: roles }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", uid),
+    ]);
     setProfile((data as unknown as Profile) ?? null);
+    setIsAdmin((roles ?? []).some((r) => r.role === "admin"));
   }, []);
 
   useEffect(() => {
@@ -55,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => void loadProfile(s.user.id), 0);
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
     });
     void supabase.auth.getSession().then(async ({ data }) => {
@@ -76,17 +90,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setProfile(null);
+    setIsAdmin(false);
     setSession(null);
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user: session?.user ?? null, session, profile, loading, refreshProfile, signOut }}
+      value={{
+        user: session?.user ?? null,
+        session,
+        profile,
+        isAdmin,
+        loading,
+        refreshProfile,
+        signOut,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
+
 
 export function useAuth() {
   return useContext(AuthContext);

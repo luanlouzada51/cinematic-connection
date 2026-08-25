@@ -66,21 +66,35 @@ function Discover() {
     setLoading(true);
     const [{ data: titles }, { data: swipes }, { data: gs }, { data: sc }] = await Promise.all([
       supabase.from("titles").select("*").limit(500),
-      supabase.from("content_swipes").select("title_id").eq("user_id", user.id),
+      supabase.from("content_swipes").select("title_id,interested").eq("user_id", user.id),
       supabase.from("genres").select("slug,name_pt,name_en,name_es").order("sort"),
       supabase.from("title_scores").select("*"),
     ]);
     const seen = new Set((swipes ?? []).map((s) => s.title_id));
     const taste = (profile?.taste_vector ?? {}) as Record<string, number>;
     const fav = profile?.favorite_genres ?? [];
+    const country = (profile?.country ?? "").toUpperCase();
+    // Reforça gêneros dos títulos que a pessoa já marcou como interessantes.
+    const likedIds = new Set(
+      (swipes ?? []).filter((s) => s.interested).map((s) => s.title_id),
+    );
+    const likedGenres: Record<string, number> = {};
+    (titles ?? [])
+      .filter((x) => likedIds.has(x.id))
+      .forEach((x) => x.genre_slugs.forEach((g) => (likedGenres[g] = (likedGenres[g] ?? 0) + 0.8)));
     const ranked = (titles ?? [])
       .filter((x) => !seen.has(x.id))
       .map((x) => {
         const affinity = x.genre_slugs.reduce(
-          (acc, g) => acc + (taste[g] ?? 0) + (fav.includes(g) ? 1.5 : 0),
+          (acc, g) =>
+            acc + (taste[g] ?? 0) + (fav.includes(g) ? 1.5 : 0) + (likedGenres[g] ?? 0),
           0,
         );
-        return { x, k: affinity + Math.random() * 1.2 };
+        const cultural =
+          country && (x as { country?: string | null }).country?.toUpperCase() === country
+            ? 2.5
+            : 0;
+        return { x, k: affinity + cultural + Math.random() * 1.2 };
       })
       .sort((a, b) => b.k - a.k)
       .map((r) => r.x as Title);

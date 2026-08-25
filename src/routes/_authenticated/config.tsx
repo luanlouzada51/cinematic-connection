@@ -9,6 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/config")({
@@ -34,7 +35,7 @@ const LANGS: { code: Lang; label: string }[] = [
 
 function SettingsPage() {
   const { t, lang, setLang } = useI18n();
-  const { user } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [blocked, setBlocked] = useState<{ id: string; name: string }[]>([]);
   const [pwd, setPwd] = useState("");
   const [pwd2, setPwd2] = useState("");
@@ -59,6 +60,20 @@ function SettingsPage() {
       setBlocked((profs ?? []).map((p) => ({ id: p.id, name: p.display_name })));
     })();
   }, [user]);
+
+  async function savePrivacy(field: "allow_matches" | "allow_private_chats", value: boolean) {
+    if (!user) return;
+    const patch =
+      field === "allow_matches" ? { allow_matches: value } : { allow_private_chats: value };
+    const { error } = await supabase.from("profiles").update(patch).eq("id", user.id);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await refreshProfile();
+    toast.success(t("save"));
+  }
 
   async function changeLang(l: Lang) {
     setLang(l);
@@ -132,7 +147,31 @@ function SettingsPage() {
         </div>
       </section>
 
+      <section className="mb-5 space-y-4 rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold">{t("allowMatches")}</p>
+            <p className="text-xs text-muted-foreground">{t("allowMatchesSub")}</p>
+          </div>
+          <Switch
+            checked={profile?.allow_matches ?? true}
+            onCheckedChange={(v) => void savePrivacy("allow_matches", v)}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold">{t("allowPrivateChats")}</p>
+            <p className="text-xs text-muted-foreground">{t("allowPrivateChatsSub")}</p>
+          </div>
+          <Switch
+            checked={profile?.allow_private_chats ?? true}
+            onCheckedChange={(v) => void savePrivacy("allow_private_chats", v)}
+          />
+        </div>
+      </section>
+
       <section className="mb-5 rounded-2xl border border-border bg-card p-4">
+
         <h2 className="mb-1 text-xl">{t("passwordSection")}</h2>
         <p className="mb-3 text-sm text-muted-foreground">
           {hasPassword ? user?.email : t("passwordSectionSub")}
