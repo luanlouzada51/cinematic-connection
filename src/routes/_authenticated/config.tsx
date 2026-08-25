@@ -132,7 +132,31 @@ function SettingsPage() {
         </div>
       </section>
 
+      <section className="mb-5 space-y-4 rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold">{t("allowMatches")}</p>
+            <p className="text-xs text-muted-foreground">{t("allowMatchesSub")}</p>
+          </div>
+          <Switch
+            checked={profile?.allow_matches ?? true}
+            onCheckedChange={(v) => void savePrivacy("allow_matches", v)}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold">{t("allowPrivateChats")}</p>
+            <p className="text-xs text-muted-foreground">{t("allowPrivateChatsSub")}</p>
+          </div>
+          <Switch
+            checked={profile?.allow_private_chats ?? true}
+            onCheckedChange={(v) => void savePrivacy("allow_private_chats", v)}
+          />
+        </div>
+      </section>
+
       <section className="mb-5 rounded-2xl border border-border bg-card p-4">
+
         <h2 className="mb-1 text-xl">{t("passwordSection")}</h2>
         <p className="mb-3 text-sm text-muted-foreground">
           {hasPassword ? user?.email : t("passwordSectionSub")}
