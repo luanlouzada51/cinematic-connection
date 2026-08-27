@@ -46,6 +46,8 @@ type Party = {
   scheduled_at: string;
   note: string | null;
   members: string[];
+  members_count?: number;
+
 };
 type PMsg = { id: string; body: string; sender_id: string };
 
