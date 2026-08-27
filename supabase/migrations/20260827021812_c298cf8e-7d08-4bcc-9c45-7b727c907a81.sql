@@ -1,0 +1,1 @@
+drop policy if exists "party members readable by signed in" on public.watch_party_members;
