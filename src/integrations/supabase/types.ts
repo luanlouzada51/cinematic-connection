@@ -214,6 +214,7 @@ export type Database = {
           description: string | null
           id: string
           is_public: boolean
+          likes_count: number
           name: string
           owner_id: string
         }
@@ -222,6 +223,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          likes_count?: number
           name: string
           owner_id: string
         }
@@ -230,6 +232,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          likes_count?: number
           name?: string
           owner_id?: string
         }
@@ -621,6 +624,7 @@ export type Database = {
           created_at: string
           host_id: string
           id: string
+          members_count: number
           note: string | null
           scheduled_at: string
           title_id: string
@@ -629,6 +633,7 @@ export type Database = {
           created_at?: string
           host_id: string
           id?: string
+          members_count?: number
           note?: string | null
           scheduled_at: string
           title_id: string
@@ -637,6 +642,7 @@ export type Database = {
           created_at?: string
           host_id?: string
           id?: string
+          members_count?: number
           note?: string | null
           scheduled_at?: string
           title_id?: string
@@ -772,20 +778,6 @@ export type Database = {
         Returns: boolean
       }
       is_matched_with: { Args: { _other: string }; Returns: boolean }
-      list_like_counts: {
-        Args: never
-        Returns: {
-          likes: number
-          list_id: string
-        }[]
-      }
-      watch_party_member_counts: {
-        Args: never
-        Returns: {
-          members: number
-          party_id: string
-        }[]
-      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
