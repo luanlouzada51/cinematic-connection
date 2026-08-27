@@ -1,6 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { botOpeningPrompt, botReplyPrompt, callPersona } from "./bots.server-helpers";
+import {
+  botOpeningPrompt,
+  botReplyPrompt,
+  callPersona,
+  humanDelayMs,
+  type BotSelf,
+} from "./bots.server-helpers";
+
+const BOT_FIELDS = "id,display_name,bot_persona,is_bot,taste_vector,favorite_genres,age,city,bio";
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Divide um texto de duas frases em duas mensagens, como gente faz às vezes. */
+function splitHuman(text: string): string[] {
+  const parts = text.split(/(?<=[.!?…])\s+/).filter(Boolean);
+  if (parts.length === 2 && text.length > 60 && Math.random() < 0.45) return parts;
+  return [text];
+}
 
 /** O agente reage a uma curtida recebida: curte de volta e puxa assunto. */
 export const botReactToSwipe = createServerFn({ method: "POST" })
@@ -13,7 +30,7 @@ export const botReactToSwipe = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: bot } = await supabaseAdmin
       .from("profiles")
-      .select("id,display_name,bot_persona,is_bot,taste_vector")
+      .select(BOT_FIELDS)
       .eq("id", data.targetId)
       .maybeSingle();
     if (!bot?.is_bot) return { matched: false as const };
@@ -45,7 +62,7 @@ export const botReactToSwipe = createServerFn({ method: "POST" })
       .select("id", { count: "exact", head: true })
       .eq("match_id", match.id);
     if (!count) {
-      const text = await callPersona(botOpeningPrompt(bot.bot_persona ?? bot.display_name, me));
+      const text = await callPersona(botOpeningPrompt(bot as BotSelf, me));
       if (text) {
         await supabaseAdmin
           .from("messages")
@@ -76,7 +93,7 @@ export const botReply = createServerFn({ method: "POST" })
 
     const { data: bot } = await supabaseAdmin
       .from("profiles")
-      .select("id,display_name,bot_persona,is_bot")
+      .select(BOT_FIELDS)
       .eq("id", botId)
       .maybeSingle();
     if (!bot?.is_bot) return { ok: false as const };
@@ -86,18 +103,28 @@ export const botReply = createServerFn({ method: "POST" })
       .select("body,sender_id,created_at")
       .eq("match_id", match.id)
       .order("created_at", { ascending: false })
-      .limit(14);
+      .limit(20);
 
     const ordered = (history ?? []).slice().reverse();
+    const lastIncoming = [...ordered].reverse().find((m) => m.sender_id !== bot.id)?.body ?? "";
     const text = await callPersona(
       botReplyPrompt(
-        bot.bot_persona ?? bot.display_name,
+        bot as BotSelf,
         ordered.map((m) => ({ mine: m.sender_id === bot.id, body: m.body })),
       ),
     );
     if (!text) return { ok: false as const };
-    await supabaseAdmin
-      .from("messages")
-      .insert({ match_id: match.id, sender_id: bot.id, body: text });
+
+    const chunks = splitHuman(text);
+    for (const [i, chunk] of chunks.entries()) {
+      const wait = Math.min(
+        9000,
+        i === 0 ? humanDelayMs(lastIncoming.length, chunk.length) : 900 + chunk.length * 35,
+      );
+      await sleep(wait);
+      await supabaseAdmin
+        .from("messages")
+        .insert({ match_id: match.id, sender_id: bot.id, body: chunk });
+    }
     return { ok: true as const };
   });

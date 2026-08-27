@@ -109,7 +109,7 @@ function Chat() {
             void botReply({ data: { matchId } })
               .catch(() => undefined)
               .finally(() => setTyping(false));
-          }, 900 + Math.random() * 1400);
+          }, 400 + Math.random() * 900);
         }
       }
     } catch {
