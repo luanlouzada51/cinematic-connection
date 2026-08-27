@@ -123,6 +123,7 @@ function Onboarding() {
       toast.error(error.message);
       return;
     }
+    if (!profile?.onboarding_done) reportSignupConversion();
     await refreshProfile();
     void navigate({ to: profile?.onboarding_done ? "/perfil" : "/descobrir" });
   }
