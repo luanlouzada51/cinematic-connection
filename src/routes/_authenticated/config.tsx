@@ -222,6 +222,17 @@ function SettingsPage() {
           </ul>
         )}
       </section>
+
+      <section className="rounded-2xl border border-border bg-card p-4">
+        <h2 className="mb-1 text-xl">Cookies</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          Revise sua escolha sobre cookies de medição de anúncios.
+        </p>
+        <Button size="sm" variant="outline" onClick={() => reopenConsentBanner()}>
+          Configurações de cookies
+        </Button>
+      </section>
+
     </AppShell>
   );
 }
