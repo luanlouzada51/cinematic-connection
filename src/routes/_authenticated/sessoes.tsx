@@ -191,7 +191,9 @@ function Parties() {
             <div className="min-w-0 flex-1">
               <h2 className="text-2xl leading-tight">{tmap[p.title_id]?.title}</h2>
               <p className="text-xs text-muted-foreground">
-                {new Date(p.scheduled_at).toLocaleString()} · {p.members.length} {t("participants")}
+                {new Date(p.scheduled_at).toLocaleString()} · {p.members_count ?? p.members.length}{" "}
+                {t("participants")}
+
               </p>
               {p.note && <p className="mt-1 text-sm">{p.note}</p>}
               <div className="mt-2 flex gap-2">
