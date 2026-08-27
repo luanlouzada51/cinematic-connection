@@ -4,6 +4,7 @@ import { ArrowLeft, Ban, Flag, Send, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { sendModeratedMessage } from "@/lib/moderation.functions";
+import { botReply } from "@/lib/bots.functions";
 import { moderateText } from "@/lib/moderation";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/lib/i18n";
@@ -36,7 +37,9 @@ function Chat() {
     id: string;
     display_name: string;
     avatar_url: string | null;
+    is_bot?: boolean;
   } | null>(null);
+  const [typing, setTyping] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
