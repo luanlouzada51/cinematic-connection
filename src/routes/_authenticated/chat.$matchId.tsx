@@ -170,6 +170,11 @@ function Chat() {
             {m.body}
           </div>
         ))}
+        {typing && (
+          <div className="max-w-[78%] self-start rounded-2xl bg-card px-3.5 py-2 text-sm text-muted-foreground">
+            <span className="animate-pulse">digitando…</span>
+          </div>
+        )}
         <div ref={bottom} />
       </div>
 
