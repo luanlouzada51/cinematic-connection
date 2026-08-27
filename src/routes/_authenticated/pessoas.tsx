@@ -4,6 +4,7 @@ import { motion, useMotionValue, useTransform, animate } from "motion/react";
 import { Heart, MapPin, RotateCcw, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { botReactToSwipe } from "@/lib/bots.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
