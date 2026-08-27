@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { reportSignupConversion } from "@/lib/ads";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -123,6 +124,7 @@ function Onboarding() {
       toast.error(error.message);
       return;
     }
+    if (!profile?.onboarding_done) reportSignupConversion();
     await refreshProfile();
     void navigate({ to: profile?.onboarding_done ? "/perfil" : "/descobrir" });
   }

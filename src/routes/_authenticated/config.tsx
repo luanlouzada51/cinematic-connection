@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { reopenConsentBanner } from "@/components/ConsentBanner";
 
 export const Route = createFileRoute("/_authenticated/config")({
   head: () => ({
@@ -222,6 +223,17 @@ function SettingsPage() {
           </ul>
         )}
       </section>
+
+      <section className="rounded-2xl border border-border bg-card p-4">
+        <h2 className="mb-1 text-xl">Cookies</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          Revise sua escolha sobre cookies de medição de anúncios.
+        </p>
+        <Button size="sm" variant="outline" onClick={() => reopenConsentBanner()}>
+          Configurações de cookies
+        </Button>
+      </section>
+
     </AppShell>
   );
 }
