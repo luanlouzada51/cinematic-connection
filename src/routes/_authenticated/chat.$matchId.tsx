@@ -56,7 +56,7 @@ function Chat() {
         const otherId = match.user_a === user.id ? match.user_b : match.user_a;
         const { data: p } = await supabase
           .from("profiles")
-          .select("id,display_name,avatar_url")
+          .select("id,display_name,avatar_url,is_bot,photos")
           .eq("id", otherId)
           .maybeSingle();
         setOther(p ?? null);
@@ -103,6 +103,14 @@ function Chat() {
         toast.error(res.message);
       } else {
         setText("");
+        if (other?.is_bot) {
+          setTyping(true);
+          window.setTimeout(() => {
+            void botReply({ data: { matchId } })
+              .catch(() => undefined)
+              .finally(() => setTyping(false));
+          }, 900 + Math.random() * 1400);
+        }
       }
     } catch {
       toast.error(t("blockedMessage"));
