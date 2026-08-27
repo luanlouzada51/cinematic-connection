@@ -71,12 +71,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAdmin(false);
       }
     });
-    void supabase.auth.getSession().then(async ({ data }) => {
+    void (async () => {
+      await consumeOAuthRedirect();
+      const { data } = await supabase.auth.getSession();
       if (!active) return;
       setSession(data.session);
       if (data.session?.user) await loadProfile(data.session.user.id);
       setLoading(false);
-    });
+    })();
+
     return () => {
       active = false;
       sub.subscription.unsubscribe();
