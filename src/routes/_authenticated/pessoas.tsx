@@ -44,6 +44,7 @@ type Person = {
   photos: string[];
   favorite_genres: string[];
   taste_vector: Record<string, number>;
+  is_bot: boolean;
   affinity: number;
 };
 
@@ -81,7 +82,7 @@ function People() {
       supabase
         .from("profiles")
         .select(
-          "id,display_name,avatar_url,age,city,bio,gender,interested_in,photos,favorite_genres,taste_vector",
+          "id,display_name,avatar_url,age,city,bio,gender,interested_in,photos,favorite_genres,taste_vector,is_bot",
         )
         .neq("id", user.id)
         .eq("onboarding_done", true)
