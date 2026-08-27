@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { consumeOAuthRedirect } from "@/lib/oauthCallback";
+
 
 export type Profile = {
   id: string;
