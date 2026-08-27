@@ -62,6 +62,7 @@ function AuthPage() {
           }
           throw error;
         }
+        reportSignupConversion();
         toast.success("Conta criada!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
