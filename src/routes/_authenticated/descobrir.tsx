@@ -170,6 +170,11 @@ function Discover() {
       .from("ratings")
       .upsert({ user_id: user.id, title_id: detail.id, stars }, { onConflict: "user_id,title_id" });
     if (error) { toast.error(error.message); return; }
+    // Já avaliado: não volta a aparecer no baralho.
+    setDeck((d) => d.filter((x) => x.id !== detail.id));
+    await supabase
+      .from("content_swipes")
+      .upsert({ user_id: user.id, title_id: detail.id, interested: stars >= 3 });
     toast.success(`${t("yourRating")}: ${stars}★`);
     await refreshProfile();
   }
