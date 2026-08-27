@@ -4,6 +4,7 @@ import { ArrowLeft, Ban, Flag, Send, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { sendModeratedMessage } from "@/lib/moderation.functions";
+import { botReply } from "@/lib/bots.functions";
 import { moderateText } from "@/lib/moderation";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/lib/i18n";
@@ -36,7 +37,9 @@ function Chat() {
     id: string;
     display_name: string;
     avatar_url: string | null;
+    is_bot?: boolean;
   } | null>(null);
+  const [typing, setTyping] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
@@ -53,7 +56,7 @@ function Chat() {
         const otherId = match.user_a === user.id ? match.user_b : match.user_a;
         const { data: p } = await supabase
           .from("profiles")
-          .select("id,display_name,avatar_url")
+          .select("id,display_name,avatar_url,is_bot,photos")
           .eq("id", otherId)
           .maybeSingle();
         setOther(p ?? null);
@@ -100,6 +103,14 @@ function Chat() {
         toast.error(res.message);
       } else {
         setText("");
+        if (other?.is_bot) {
+          setTyping(true);
+          window.setTimeout(() => {
+            void botReply({ data: { matchId } })
+              .catch(() => undefined)
+              .finally(() => setTyping(false));
+          }, 900 + Math.random() * 1400);
+        }
       }
     } catch {
       toast.error(t("blockedMessage"));
@@ -159,6 +170,11 @@ function Chat() {
             {m.body}
           </div>
         ))}
+        {typing && (
+          <div className="max-w-[78%] self-start rounded-2xl bg-card px-3.5 py-2 text-sm text-muted-foreground">
+            <span className="animate-pulse">digitando…</span>
+          </div>
+        )}
         <div ref={bottom} />
       </div>
 

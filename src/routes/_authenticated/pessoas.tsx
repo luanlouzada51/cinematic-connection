@@ -4,6 +4,7 @@ import { motion, useMotionValue, useTransform, animate } from "motion/react";
 import { Heart, MapPin, RotateCcw, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { botReactToSwipe } from "@/lib/bots.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
@@ -44,6 +45,7 @@ type Person = {
   photos: string[];
   favorite_genres: string[];
   taste_vector: Record<string, number>;
+  is_bot: boolean;
   affinity: number;
 };
 
@@ -81,7 +83,7 @@ function People() {
       supabase
         .from("profiles")
         .select(
-          "id,display_name,avatar_url,age,city,bio,gender,interested_in,photos,favorite_genres,taste_vector",
+          "id,display_name,avatar_url,age,city,bio,gender,interested_in,photos,favorite_genres,taste_vector,is_bot",
         )
         .neq("id", user.id)
         .eq("onboarding_done", true)
@@ -144,6 +146,23 @@ function People() {
       });
       if (error) { toast.error(error.message); return; }
       if (liked) {
+        if (target.is_bot) {
+          try {
+            const res = await botReactToSwipe({ data: { targetId: target.id } });
+            if (res.matched && res.matchId) {
+              const matchId = res.matchId;
+              toast.success(`${t("itsAMatch")} ${target.display_name}`, {
+                action: {
+                  label: t("chats"),
+                  onClick: () => void navigate({ to: "/chat/$matchId", params: { matchId } }),
+                },
+              });
+              return;
+            }
+          } catch {
+            /* segue o fluxo normal */
+          }
+        }
         const { data: match } = await supabase
           .from("matches")
           .select("id")

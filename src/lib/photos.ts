@@ -7,7 +7,7 @@ const cache = new Map<string, string>();
 /** Aceita URL externa (http) ou caminho no armazenamento privado e devolve uma URL exibível. */
 export async function resolvePhoto(value?: string | null): Promise<string | null> {
   if (!value) return null;
-  if (/^(https?:|data:|blob:)/.test(value)) return value;
+  if (/^(https?:|data:|blob:|\/)/.test(value)) return value;
   const cached = cache.get(value);
   if (cached) return cached;
   const { data } = await supabase.storage.from(BUCKET).createSignedUrl(value, 60 * 60 * 24 * 7);
@@ -18,7 +18,7 @@ export async function resolvePhoto(value?: string | null): Promise<string | null
 
 export function usePhotoUrl(value?: string | null): string | null {
   const [url, setUrl] = useState<string | null>(
-    value && /^(https?:|data:|blob:)/.test(value) ? value : null,
+    value && /^(https?:|data:|blob:|\/)/.test(value) ? value : null,
   );
   useEffect(() => {
     let active = true;

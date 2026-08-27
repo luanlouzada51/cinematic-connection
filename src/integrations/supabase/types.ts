@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -396,6 +396,7 @@ export type Database = {
           allow_private_chats: boolean
           avatar_url: string | null
           bio: string | null
+          bot_persona: string | null
           city: string | null
           country: string | null
           created_at: string
@@ -404,6 +405,7 @@ export type Database = {
           gender: string | null
           id: string
           interested_in: string[]
+          is_bot: boolean
           is_premium: boolean
           language: string
           last_rating_date: string | null
@@ -419,6 +421,7 @@ export type Database = {
           allow_private_chats?: boolean
           avatar_url?: string | null
           bio?: string | null
+          bot_persona?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
@@ -427,6 +430,7 @@ export type Database = {
           gender?: string | null
           id: string
           interested_in?: string[]
+          is_bot?: boolean
           is_premium?: boolean
           language?: string
           last_rating_date?: string | null
@@ -442,6 +446,7 @@ export type Database = {
           allow_private_chats?: boolean
           avatar_url?: string | null
           bio?: string | null
+          bot_persona?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
@@ -450,6 +455,7 @@ export type Database = {
           gender?: string | null
           id?: string
           interested_in?: string[]
+          is_bot?: boolean
           is_premium?: boolean
           language?: string
           last_rating_date?: string | null
