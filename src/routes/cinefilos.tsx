@@ -90,7 +90,6 @@ function CinefilosLanding() {
         }
         throw error;
       }
-      reportSignupConversion();
       toast.success("Conta criada! Bora montar seu perfil.");
       void navigate({ to: "/descobrir" });
     } catch (err) {
