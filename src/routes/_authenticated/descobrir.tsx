@@ -64,13 +64,18 @@ function Discover() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const [{ data: titles }, { data: swipes }, { data: gs }, { data: sc }] = await Promise.all([
-      supabase.from("titles").select("*").limit(500),
-      supabase.from("content_swipes").select("title_id,interested").eq("user_id", user.id),
-      supabase.from("genres").select("slug,name_pt,name_en,name_es").order("sort"),
-      supabase.from("title_scores").select("*"),
+    const [{ data: titles }, { data: swipes }, { data: gs }, { data: sc }, { data: rated }] =
+      await Promise.all([
+        supabase.from("titles").select("*").limit(500),
+        supabase.from("content_swipes").select("title_id,interested").eq("user_id", user.id),
+        supabase.from("genres").select("slug,name_pt,name_en,name_es").order("sort"),
+        supabase.from("title_scores").select("*"),
+        supabase.from("ratings").select("title_id").eq("user_id", user.id),
+      ]);
+    const seen = new Set([
+      ...(swipes ?? []).map((s) => s.title_id),
+      ...(rated ?? []).map((r) => r.title_id),
     ]);
-    const seen = new Set((swipes ?? []).map((s) => s.title_id));
     const taste = (profile?.taste_vector ?? {}) as Record<string, number>;
     const fav = profile?.favorite_genres ?? [];
     const country = (profile?.country ?? "").toUpperCase();
