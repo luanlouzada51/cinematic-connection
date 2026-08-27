@@ -145,6 +145,23 @@ function People() {
       });
       if (error) { toast.error(error.message); return; }
       if (liked) {
+        if (target.is_bot) {
+          try {
+            const res = await botReactToSwipe({ data: { targetId: target.id } });
+            if (res.matched && res.matchId) {
+              const matchId = res.matchId;
+              toast.success(`${t("itsAMatch")} ${target.display_name}`, {
+                action: {
+                  label: t("chats"),
+                  onClick: () => void navigate({ to: "/chat/$matchId", params: { matchId } }),
+                },
+              });
+              return;
+            }
+          } catch {
+            /* segue o fluxo normal */
+          }
+        }
         const { data: match } = await supabase
           .from("matches")
           .select("id")
