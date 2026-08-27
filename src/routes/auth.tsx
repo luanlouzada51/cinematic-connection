@@ -39,6 +39,22 @@ function AuthPage() {
     if (user) void navigate({ to: "/descobrir" });
   }, [user, navigate]);
 
+  // Mensagem clara quando o Google devolve um erro pelo redirecionamento.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(
+      window.location.search.replace(/^\?/, "") + "&" + window.location.hash.replace(/^#/, ""),
+    );
+    const err = params.get("error") ?? params.get("error_description");
+    if (!err) return;
+    toast.error(
+      /access_denied|denied|cancel/i.test(err)
+        ? "Login cancelado. Autorize o acesso para continuar."
+        : "Não foi possível concluir o login com Google. Tente novamente ou use e-mail e senha.",
+    );
+  }, []);
+
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -86,7 +102,7 @@ function AuthPage() {
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/auth`,
         ...(provider === "google" ? { extraParams: { prompt: "select_account" } } : {}),
       });
       if (result.error) {

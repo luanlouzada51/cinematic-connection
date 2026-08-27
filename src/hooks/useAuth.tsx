@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { consumeOAuthRedirect } from "@/lib/oauthCallback";
+
 
 export type Profile = {
   id: string;
@@ -71,12 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAdmin(false);
       }
     });
-    void supabase.auth.getSession().then(async ({ data }) => {
+    void (async () => {
+      await consumeOAuthRedirect();
+      const { data } = await supabase.auth.getSession();
       if (!active) return;
       setSession(data.session);
       if (data.session?.user) await loadProfile(data.session.user.id);
       setLoading(false);
-    });
+    })();
+
     return () => {
       active = false;
       sub.subscription.unsubscribe();
