@@ -57,7 +57,7 @@ function Lists() {
 
   const load = useCallback(async () => {
     const [{ data: ls }, { data: items }, { data: ts }, { data: likes }] = await Promise.all([
-      supabase.from("lists").select("id,name,description,owner_id").order("created_at", {
+      supabase.from("lists").select("id,name,description,owner_id,likes_count").order("created_at", {
         ascending: false,
       }),
       supabase.from("list_items").select("list_id,title_id"),
@@ -73,11 +73,12 @@ function Lists() {
           .filter((i) => i.list_id === l.id)
           .map((i) => tmap[i.title_id])
           .filter(Boolean) as TitleLite[],
-        likes: (likes ?? []).filter((x) => x.list_id === l.id).length,
+        likes: l.likes_count ?? 0,
       })),
     );
     setLiked((likes ?? []).filter((x) => x.user_id === user?.id).map((x) => x.list_id));
   }, [user?.id]);
+
 
   useEffect(() => {
     void load();

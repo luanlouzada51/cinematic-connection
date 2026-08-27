@@ -214,6 +214,7 @@ export type Database = {
           description: string | null
           id: string
           is_public: boolean
+          likes_count: number
           name: string
           owner_id: string
         }
@@ -222,6 +223,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          likes_count?: number
           name: string
           owner_id: string
         }
@@ -230,6 +232,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          likes_count?: number
           name?: string
           owner_id?: string
         }
@@ -621,6 +624,7 @@ export type Database = {
           created_at: string
           host_id: string
           id: string
+          members_count: number
           note: string | null
           scheduled_at: string
           title_id: string
@@ -629,6 +633,7 @@ export type Database = {
           created_at?: string
           host_id: string
           id?: string
+          members_count?: number
           note?: string | null
           scheduled_at: string
           title_id: string
@@ -637,6 +642,7 @@ export type Database = {
           created_at?: string
           host_id?: string
           id?: string
+          members_count?: number
           note?: string | null
           scheduled_at?: string
           title_id?: string
