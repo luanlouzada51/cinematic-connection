@@ -1,241 +1,133 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import logoIcon from "@/assets/movie-match-icon.png.asset.json";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
-import { useAuth } from "@/hooks/useAuth";
-import { useI18n } from "@/lib/i18n";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
-export const Route = createFileRoute("/auth")({
-  head: () => ({
-    meta: [
-      { title: "Entrar — Movie Match" },
-      { name: "description", content: "Acesse sua conta Movie Match e continue descobrindo filmes." },
-      { property: "og:title", content: "Entrar — Movie Match" },
-      {
-        property: "og:description",
-        content: "Acesse sua conta Movie Match e continue descobrindo filmes.",
-      },
-    ],
-  }),
-  component: AuthPage,
-});
+import { Button } from "@/components/ui/button";
+import { Field, Input } from "@/components/ui/field";
+import { LocaleToggle } from "@/components/LocaleToggle";
+import { useSession } from "@/features/auth/session";
+import { lovable } from "@/integrations/lovable";
+import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
+
+export const Route = createFileRoute("/auth")({ ssr: false, component: AuthPage });
+
+type Mode = "signIn" | "signUp";
 
 function AuthPage() {
   const { t } = useI18n();
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"in" | "up">("in");
+  const { user, loading } = useSession();
+
+  const [mode, setMode] = useState<Mode>("signIn");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (user) void navigate({ to: "/descobrir" });
-  }, [user, navigate]);
+    if (!loading && user) void navigate({ to: "/app" });
+  }, [loading, user, navigate]);
 
-  // Mensagem clara quando o Google devolve um erro pelo redirecionamento.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(
-      window.location.search.replace(/^\?/, "") + "&" + window.location.hash.replace(/^#/, ""),
-    );
-    const err = params.get("error") ?? params.get("error_description");
-    if (!err) return;
-    toast.error(
-      /access_denied|denied|cancel/i.test(err)
-        ? "Login cancelado. Autorize o acesso para continuar."
-        : "Não foi possível concluir o login com Google. Tente novamente ou use e-mail e senha.",
-    );
-  }, []);
-
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setBusy(true);
+
     try {
-      if (mode === "up") {
-        if (password.length < 8) throw new Error(t("passwordTooShort"));
-        if (password !== password2) throw new Error(t("passwordMismatch"));
+      if (mode === "signUp") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/descobrir` },
+          options: { data: { full_name: name } },
         });
-        if (error) {
-          if (error.message.toLowerCase().includes("already registered")) {
-            throw new Error(
-              "Esse e-mail já tem conta. Entre com a senha ou use 'Continuar com Google'.",
-            );
-          }
-          if (error.message.toLowerCase().includes("weak")) {
-            throw new Error("Senha muito fraca ou vazada. Escolha uma senha mais forte.");
-          }
-          throw error;
-        }
-          toast.success("Conta criada!");
+        if (error) throw error;
+        toast.success(t("auth.signUpSuccess"));
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          if (error.message.toLowerCase().includes("invalid login credentials")) {
-            throw new Error(
-              "E-mail ou senha incorretos. Se você criou a conta com Google, use 'Continuar com Google'.",
-            );
-          }
-          throw error;
-        }
+        if (error) throw error;
       }
-      void navigate({ to: "/descobrir" });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function social(provider: "google" | "apple") {
-    setBusy(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: `${window.location.origin}/auth`,
-        ...(provider === "google" ? { extraParams: { prompt: "select_account" } } : {}),
-      });
-      if (result.error) {
-        const raw = (result.error.message ?? "").toLowerCase();
-        if (raw.includes("access_denied") || raw.includes("cancel") || raw.includes("closed")) {
-          toast.error("Login cancelado. Autorize o acesso para continuar.");
-        } else if (raw.includes("popup") || raw.includes("blocked")) {
-          toast.error("O popup foi bloqueado. Libere popups para este site e tente de novo.");
-        } else if (raw.includes("email")) {
-          toast.error("O Google não compartilhou seu e-mail. Autorize o e-mail ou use e-mail e senha.");
-        } else if (raw.includes("provider") || raw.includes("unsupported")) {
-          toast.error("Login com Google indisponível no momento. Use e-mail e senha.");
-        } else {
-          toast.error(result.error.message ?? "Não foi possível entrar com Google.");
-        }
-        return;
-      }
-      if (result.redirected) return;
-
-      // O helper já grava os tokens. Confirme que a sessão ficou disponível
-      // antes de navegar, sem recarregar a página (o reload pode perder a
-      // sincronização do armazenamento no preview incorporado).
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
-        toast.error("O Google autorizou o acesso, mas a sessão não foi salva. Tente novamente.");
-        return;
-      }
-
-      const { data: userData, error: userError } = await supabase.auth.getUser(
-        sessionData.session.access_token,
-      );
-      if (userError || !userData.user) {
-        await supabase.auth.signOut({ scope: "local" });
-        toast.error("A sessão recebida do Google é inválida. Tente entrar novamente.");
-        return;
-      }
-      if (!userData.user.email) {
-        await supabase.auth.signOut({ scope: "local" });
-        toast.error("O Google não compartilhou seu e-mail. Autorize o e-mail para continuar.");
-        return;
-      }
-
-      await navigate({ to: "/descobrir", replace: true });
+      await navigate({ to: "/app" });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "";
-      toast.error(
-        /cancel|closed|denied/i.test(msg)
-          ? "Login cancelado antes de concluir."
-          : msg || "Erro no login social",
-      );
+      toast.error(error instanceof Error ? error.message : t("error.generic"));
     } finally {
       setBusy(false);
     }
   }
 
+  async function handleGoogle() {
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth("google");
+    if (result.error) {
+      toast.error(result.error.message);
+      setBusy(false);
+      return;
+    }
+    if (!result.redirected) await navigate({ to: "/app" });
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-reel px-5 py-10">
-      <div className="w-full max-w-sm">
-        <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <img src={logoIcon.url} alt="Movie Match" className="size-10 rounded-xl" />
-          <span className="font-display text-3xl leading-none text-gradient-cine">Movie Match</span>
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="mx-auto flex w-full max-w-md items-center justify-between px-5 py-5">
+        <Link to="/" className="text-lg font-semibold tracking-tight">
+          {t("app.name")}
         </Link>
+        <LocaleToggle />
+      </header>
 
-        <div className="rounded-3xl border border-border bg-card p-6 shadow-cine">
-          <h1 className="mb-1 text-3xl">{mode === "in" ? t("signIn") : t("signUp")}</h1>
-          <p className="mb-5 text-sm text-muted-foreground">{t("tagline")}</p>
+      <main className="mx-auto w-full max-w-md px-5 pb-16">
+        <h1 className="text-2xl font-semibold">
+          {mode === "signIn" ? t("auth.signIn") : t("auth.signUp")}
+        </h1>
 
-          <div className="space-y-2">
-            <Button variant="secondary" className="w-full" onClick={() => void social("google")}>
-              {t("continueGoogle")}
-            </Button>
-            <Button variant="secondary" className="w-full" onClick={() => void social("apple")}>
-              {t("continueApple")}
-            </Button>
-          </div>
+        <Button variant="outline" block className="mt-6" onClick={handleGoogle} disabled={busy}>
+          {t("auth.continueGoogle")}
+        </Button>
 
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            {t("or")}
-            <span className="h-px flex-1 bg-border" />
-          </div>
+        <p className="my-5 text-center text-xs uppercase tracking-wide text-muted-foreground">
+          {t("auth.orEmail")}
+        </p>
 
-          <form onSubmit={submit} className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">{t("email")}</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password">{t("password")}</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {mode === "up" && (
-              <div className="space-y-1.5">
-                <Label htmlFor="password2">{t("confirmPassword")}</Label>
-                <Input
-                  id="password2"
-                  type="password"
-                  required
-                  minLength={8}
-                  value={password2}
-                  onChange={(e) => setPassword2(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">{t("signupPasswordHint")}</p>
-              </div>
-            )}
-            <Button type="submit" className="w-full" disabled={busy}>
-              {mode === "in" ? t("signIn") : t("signUp")}
-            </Button>
-          </form>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          {mode === "signUp" ? (
+            <Field label={t("auth.name")}>
+              <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            </Field>
+          ) : null}
 
-          <button
-            type="button"
-            onClick={() => setMode(mode === "in" ? "up" : "in")}
-            className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground"
-          >
-            {mode === "in" ? t("noAccount") : t("haveAccount")}
-          </button>
-        </div>
-      </div>
+          <Field label={t("auth.email")}>
+            <Input
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </Field>
+
+          <Field label={t("auth.password")} hint={t("auth.passwordHint")}>
+            <Input
+              type="password"
+              autoComplete={mode === "signUp" ? "new-password" : "current-password"}
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </Field>
+
+          <Button type="submit" block disabled={busy}>
+            {busy ? t("common.saving") : mode === "signIn" ? t("auth.signIn") : t("auth.signUp")}
+          </Button>
+        </form>
+
+        <button
+          type="button"
+          className="mt-6 w-full text-sm text-muted-foreground underline"
+          onClick={() => setMode(mode === "signIn" ? "signUp" : "signIn")}
+        >
+          {mode === "signIn" ? t("auth.noAccount") : t("auth.haveAccount")}
+        </button>
+      </main>
     </div>
   );
 }

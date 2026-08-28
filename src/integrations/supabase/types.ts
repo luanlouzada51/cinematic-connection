@@ -1,914 +1,393 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+/**
+ * Tipos do banco.
+ *
+ * Escritos à mão a partir de `supabase/migrations`, no formato que o
+ * supabase-js espera. Ao mexer no schema, atualize os dois lados juntos.
+ */
+
+export type AccountRole = "owner" | "worker" | "customer";
+export type MemberRole = "owner" | "manager" | "cleaner";
+export type Recurrence =
+  "one_time" | "weekly" | "biweekly" | "every_3_weeks" | "every_4_weeks" | "monthly";
+export type ServiceType =
+  "standard" | "deep_clean" | "move_in_out" | "post_construction" | "office";
+export type AppointmentStatus =
+  "scheduled" | "on_my_way" | "in_progress" | "completed" | "canceled";
+export type AppointmentEventKind =
+  "on_my_way" | "clock_in" | "clock_out" | "completed" | "canceled";
+export type PaymentCollector = "unpaid" | "company" | "worker";
+export type PayModel = "percentage" | "daily" | "hourly";
+export type CleaningSkill =
+  | "dusting"
+  | "kitchen"
+  | "bathroom"
+  | "mopping"
+  | "vacuum"
+  | "windows"
+  | "laundry"
+  | "ironing"
+  | "organizing"
+  | "deep_clean"
+  | "move_out"
+  | "office";
+export type AvailabilityPeriod = "morning" | "afternoon" | "full_day" | "night";
+export type GigStatus = "open" | "filled" | "in_progress" | "completed" | "canceled";
+export type GigWorkerStatus = "hired" | "in_progress" | "completed" | "no_show" | "canceled";
+export type ApplicationStatus = "pending" | "accepted" | "declined" | "withdrawn";
+export type ThreadKind = "customer" | "gig";
+export type ReviewSubject = "company" | "worker";
+export type PayoutStatus = "open" | "closed" | "settled";
+
+/** Campos obrigatórios no insert; o resto tem default no banco. */
+type TableDef<Row extends object, RequiredOnInsert extends keyof Row> = {
+  Row: Row;
+  Insert: Pick<Row, RequiredOnInsert> & Partial<Row>;
+  Update: Partial<Row>;
+  Relationships: [];
+};
+
+export type Account = {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  locale: string;
+  primary_role: AccountRole;
+  onboarding_done: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Company = {
+  id: string;
+  owner_id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  city: string | null;
+  state: string | null;
+  logo_url: string | null;
+  default_pay_model: PayModel;
+  default_worker_percentage: number;
+  default_daily_rate: number | null;
+  default_hourly_rate: number | null;
+  show_prices_to_workers: boolean;
+  show_prices_to_customers: boolean;
+  allow_customer_chat: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CompanyMember = {
+  id: string;
+  company_id: string;
+  account_id: string | null;
+  invite_email: string | null;
+  invite_code: string | null;
+  display_name: string;
+  role: MemberRole;
+  pay_model: PayModel | null;
+  worker_percentage: number | null;
+  daily_rate: number | null;
+  hourly_rate: number | null;
+  active: boolean;
+  created_at: string;
+};
+
+export type Customer = {
+  id: string;
+  company_id: string;
+  account_id: string | null;
+  portal_code: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  notes: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Property = {
+  id: string;
+  customer_id: string;
+  label: string;
+  address_line1: string;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  square_feet: number | null;
+  access_notes: string | null;
+  parking_notes: string | null;
+  created_at: string;
+};
+
+export type ServiceSeries = {
+  id: string;
+  company_id: string;
+  customer_id: string;
+  property_id: string;
+  service_type: ServiceType;
+  recurrence: Recurrence;
+  start_date: string;
+  start_time: string;
+  duration_minutes: number;
+  price: number;
+  notes: string | null;
+  active: boolean;
+  created_at: string;
+};
+
+export type Appointment = {
+  id: string;
+  company_id: string;
+  customer_id: string;
+  property_id: string;
+  series_id: string | null;
+  service_type: ServiceType;
+  scheduled_date: string;
+  start_time: string;
+  end_time: string | null;
+  price: number;
+  status: AppointmentStatus;
+  payment_collector: PaymentCollector;
+  paid_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppointmentAssignment = {
+  id: string;
+  appointment_id: string;
+  member_id: string;
+  created_at: string;
+};
+
+export type AppointmentEvent = {
+  id: string;
+  appointment_id: string;
+  account_id: string | null;
+  kind: AppointmentEventKind;
+  note: string | null;
+  created_at: string;
+};
+
+export type AppointmentPhoto = {
+  id: string;
+  appointment_id: string;
+  account_id: string | null;
+  storage_path: string;
+  caption: string | null;
+  created_at: string;
+};
+
+export type Thread = {
+  id: string;
+  kind: ThreadKind;
+  company_id: string;
+  customer_id: string | null;
+  gig_id: string | null;
+  worker_id: string | null;
+  last_message_at: string | null;
+  created_at: string;
+};
+
+export type ThreadMessage = {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type WorkerProfile = {
+  account_id: string;
+  headline: string | null;
+  bio: string | null;
+  skills: CleaningSkill[];
+  years_experience: number | null;
+  has_car: boolean;
+  radius_km: number;
+  daily_rate: number | null;
+  hourly_rate: number | null;
+  accepts_percentage: boolean;
+  min_percentage: number | null;
+  visible: boolean;
+  rating_avg: number;
+  rating_count: number;
+  jobs_done: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WorkerAvailability = {
+  id: string;
+  account_id: string;
+  date: string;
+  period: AvailabilityPeriod;
+  note: string | null;
+  created_at: string;
+};
+
+export type Gig = {
+  id: string;
+  company_id: string;
+  created_by: string;
+  title: string;
+  description: string | null;
+  city: string | null;
+  state: string | null;
+  date: string;
+  start_time: string;
+  end_time: string | null;
+  required_skills: CleaningSkill[];
+  headcount: number;
+  pay_model: PayModel;
+  daily_rate: number | null;
+  hourly_rate: number | null;
+  worker_percentage: number | null;
+  status: GigStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GigApplication = {
+  id: string;
+  gig_id: string;
+  worker_id: string;
+  message: string | null;
+  status: ApplicationStatus;
+  created_at: string;
+};
+
+export type GigWorker = {
+  id: string;
+  gig_id: string;
+  worker_id: string;
+  status: GigWorkerStatus;
+  started_at: string | null;
+  ended_at: string | null;
+  agreed_pay_model: PayModel;
+  agreed_daily_rate: number | null;
+  agreed_hourly_rate: number | null;
+  agreed_percentage: number | null;
+  created_at: string;
+};
+
+export type WorkReview = {
+  id: string;
+  gig_id: string;
+  author_id: string;
+  subject_kind: ReviewSubject;
+  subject_account_id: string | null;
+  subject_company_id: string | null;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
+
+export type PayoutPeriod = {
+  id: string;
+  company_id: string;
+  member_id: string;
+  start_date: string;
+  end_date: string;
+  pay_model: PayModel;
+  worker_percentage: number | null;
+  daily_rate: number | null;
+  hourly_rate: number | null;
+  status: PayoutStatus;
+  settled_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PayoutAdjustment = {
+  id: string;
+  period_id: string;
+  label: string;
+  amount: number;
+  created_at: string;
+};
+
+export type PayoutLine = {
+  id: string;
+  period_id: string;
+  appointment_id: string | null;
+  label: string;
+  service_date: string;
+  gross: number;
+  collector: PaymentCollector;
+  worker_share: number;
+  company_share: number;
+  created_at: string;
+};
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.17"
-  }
   public: {
     Tables: {
-      achievements: {
-        Row: {
-          code: string
-          earned_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          code: string
-          earned_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          code?: string
-          earned_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      blocks: {
-        Row: {
-          blocked_id: string
-          blocker_id: string
-          created_at: string
-        }
-        Insert: {
-          blocked_id: string
-          blocker_id: string
-          created_at?: string
-        }
-        Update: {
-          blocked_id?: string
-          blocker_id?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
-      comments: {
-        Row: {
-          author_id: string
-          body: string
-          created_at: string
-          id: string
-          post_id: string
-        }
-        Insert: {
-          author_id: string
-          body: string
-          created_at?: string
-          id?: string
-          post_id: string
-        }
-        Update: {
-          author_id?: string
-          body?: string
-          created_at?: string
-          id?: string
-          post_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      content_swipes: {
-        Row: {
-          created_at: string
-          interested: boolean
-          title_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          interested: boolean
-          title_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          interested?: boolean
-          title_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_swipes_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "title_scores"
-            referencedColumns: ["title_id"]
-          },
-          {
-            foreignKeyName: "content_swipes_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "titles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      genres: {
-        Row: {
-          name_en: string
-          name_es: string
-          name_pt: string
-          slug: string
-          sort: number
-        }
-        Insert: {
-          name_en: string
-          name_es: string
-          name_pt: string
-          slug: string
-          sort?: number
-        }
-        Update: {
-          name_en?: string
-          name_es?: string
-          name_pt?: string
-          slug?: string
-          sort?: number
-        }
-        Relationships: []
-      }
-      list_items: {
-        Row: {
-          created_at: string
-          list_id: string
-          title_id: string
-        }
-        Insert: {
-          created_at?: string
-          list_id: string
-          title_id: string
-        }
-        Update: {
-          created_at?: string
-          list_id?: string
-          title_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "list_items_list_id_fkey"
-            columns: ["list_id"]
-            isOneToOne: false
-            referencedRelation: "lists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "list_items_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "title_scores"
-            referencedColumns: ["title_id"]
-          },
-          {
-            foreignKeyName: "list_items_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "titles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      list_likes: {
-        Row: {
-          list_id: string
-          user_id: string
-        }
-        Insert: {
-          list_id: string
-          user_id: string
-        }
-        Update: {
-          list_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "list_likes_list_id_fkey"
-            columns: ["list_id"]
-            isOneToOne: false
-            referencedRelation: "lists"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lists: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          is_public: boolean
-          likes_count: number
-          name: string
-          owner_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_public?: boolean
-          likes_count?: number
-          name: string
-          owner_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_public?: boolean
-          likes_count?: number
-          name?: string
-          owner_id?: string
-        }
-        Relationships: []
-      }
-      matches: {
-        Row: {
-          created_at: string
-          id: string
-          user_a: string
-          user_b: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          user_a: string
-          user_b: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          user_a?: string
-          user_b?: string
-        }
-        Relationships: []
-      }
-      messages: {
-        Row: {
-          body: string
-          created_at: string
-          flagged: boolean
-          id: string
-          match_id: string
-          sender_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          flagged?: boolean
-          id?: string
-          match_id: string
-          sender_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          flagged?: boolean
-          id?: string
-          match_id?: string
-          sender_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notifications: {
-        Row: {
-          body: string
-          created_at: string
-          id: string
-          kind: string
-          link: string | null
-          read: boolean
-          user_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          id?: string
-          kind: string
-          link?: string | null
-          read?: boolean
-          user_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          id?: string
-          kind?: string
-          link?: string | null
-          read?: boolean
-          user_id?: string
-        }
-        Relationships: []
-      }
-      person_swipes: {
-        Row: {
-          created_at: string
-          id: string
-          liked: boolean
-          super_like: boolean
-          swiper_id: string
-          target_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          liked: boolean
-          super_like?: boolean
-          swiper_id: string
-          target_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          liked?: boolean
-          super_like?: boolean
-          swiper_id?: string
-          target_id?: string
-        }
-        Relationships: []
-      }
-      posts: {
-        Row: {
-          author_id: string
-          body: string
-          created_at: string
-          genre_slug: string
-          id: string
-          kind: string
-          score: number
-          title: string
-        }
-        Insert: {
-          author_id: string
-          body?: string
-          created_at?: string
-          genre_slug: string
-          id?: string
-          kind: string
-          score?: number
-          title: string
-        }
-        Update: {
-          author_id?: string
-          body?: string
-          created_at?: string
-          genre_slug?: string
-          id?: string
-          kind?: string
-          score?: number
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "posts_genre_slug_fkey"
-            columns: ["genre_slug"]
-            isOneToOne: false
-            referencedRelation: "genres"
-            referencedColumns: ["slug"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          age: number | null
-          allow_matches: boolean
-          allow_private_chats: boolean
-          avatar_url: string | null
-          bio: string | null
-          bot_persona: string | null
-          city: string | null
-          country: string | null
-          created_at: string
-          display_name: string
-          favorite_genres: string[]
-          gender: string | null
-          id: string
-          interested_in: string[]
-          is_bot: boolean
-          is_premium: boolean
-          language: string
-          last_rating_date: string | null
-          onboarding_done: boolean
-          photos: string[]
-          streak_count: number
-          taste_vector: Json
-          updated_at: string
-        }
-        Insert: {
-          age?: number | null
-          allow_matches?: boolean
-          allow_private_chats?: boolean
-          avatar_url?: string | null
-          bio?: string | null
-          bot_persona?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string
-          display_name?: string
-          favorite_genres?: string[]
-          gender?: string | null
-          id: string
-          interested_in?: string[]
-          is_bot?: boolean
-          is_premium?: boolean
-          language?: string
-          last_rating_date?: string | null
-          onboarding_done?: boolean
-          photos?: string[]
-          streak_count?: number
-          taste_vector?: Json
-          updated_at?: string
-        }
-        Update: {
-          age?: number | null
-          allow_matches?: boolean
-          allow_private_chats?: boolean
-          avatar_url?: string | null
-          bio?: string | null
-          bot_persona?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string
-          display_name?: string
-          favorite_genres?: string[]
-          gender?: string | null
-          id?: string
-          interested_in?: string[]
-          is_bot?: boolean
-          is_premium?: boolean
-          language?: string
-          last_rating_date?: string | null
-          onboarding_done?: boolean
-          photos?: string[]
-          streak_count?: number
-          taste_vector?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      ratings: {
-        Row: {
-          created_at: string
-          id: string
-          stars: number
-          title_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          stars: number
-          title_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          stars?: number
-          title_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ratings_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "title_scores"
-            referencedColumns: ["title_id"]
-          },
-          {
-            foreignKeyName: "ratings_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "titles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reports: {
-        Row: {
-          context: string | null
-          created_at: string
-          id: string
-          reason: string
-          reporter_id: string
-          target_id: string | null
-        }
-        Insert: {
-          context?: string | null
-          created_at?: string
-          id?: string
-          reason: string
-          reporter_id: string
-          target_id?: string | null
-        }
-        Update: {
-          context?: string | null
-          created_at?: string
-          id?: string
-          reason?: string
-          reporter_id?: string
-          target_id?: string | null
-        }
-        Relationships: []
-      }
-      titles: {
-        Row: {
-          cast_list: string | null
-          country: string | null
-          created_at: string
-          genre_slugs: string[]
-          id: string
-          kind: string
-          overview: string | null
-          poster_url: string | null
-          title: string
-          year: number | null
-        }
-        Insert: {
-          cast_list?: string | null
-          country?: string | null
-          created_at?: string
-          genre_slugs?: string[]
-          id?: string
-          kind: string
-          overview?: string | null
-          poster_url?: string | null
-          title: string
-          year?: number | null
-        }
-        Update: {
-          cast_list?: string | null
-          country?: string | null
-          created_at?: string
-          genre_slugs?: string[]
-          id?: string
-          kind?: string
-          overview?: string | null
-          poster_url?: string | null
-          title?: string
-          year?: number | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      votes: {
-        Row: {
-          post_id: string
-          user_id: string
-          value: number
-        }
-        Insert: {
-          post_id: string
-          user_id: string
-          value: number
-        }
-        Update: {
-          post_id?: string
-          user_id?: string
-          value?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "votes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      watch_parties: {
-        Row: {
-          created_at: string
-          host_id: string
-          id: string
-          members_count: number
-          note: string | null
-          scheduled_at: string
-          title_id: string
-        }
-        Insert: {
-          created_at?: string
-          host_id: string
-          id?: string
-          members_count?: number
-          note?: string | null
-          scheduled_at: string
-          title_id: string
-        }
-        Update: {
-          created_at?: string
-          host_id?: string
-          id?: string
-          members_count?: number
-          note?: string | null
-          scheduled_at?: string
-          title_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "watch_parties_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "title_scores"
-            referencedColumns: ["title_id"]
-          },
-          {
-            foreignKeyName: "watch_parties_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "titles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      watch_party_members: {
-        Row: {
-          party_id: string
-          user_id: string
-        }
-        Insert: {
-          party_id: string
-          user_id: string
-        }
-        Update: {
-          party_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "watch_party_members_party_id_fkey"
-            columns: ["party_id"]
-            isOneToOne: false
-            referencedRelation: "watch_parties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      watch_party_messages: {
-        Row: {
-          body: string
-          created_at: string
-          id: string
-          party_id: string
-          sender_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          id?: string
-          party_id: string
-          sender_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          id?: string
-          party_id?: string
-          sender_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "watch_party_messages_party_id_fkey"
-            columns: ["party_id"]
-            isOneToOne: false
-            referencedRelation: "watch_parties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      watchlist: {
-        Row: {
-          created_at: string
-          title_id: string
-          user_id: string
-          watched: boolean
-          watched_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          title_id: string
-          user_id: string
-          watched?: boolean
-          watched_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          title_id?: string
-          user_id?: string
-          watched?: boolean
-          watched_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "watchlist_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "title_scores"
-            referencedColumns: ["title_id"]
-          },
-          {
-            foreignKeyName: "watchlist_title_id_fkey"
-            columns: ["title_id"]
-            isOneToOne: false
-            referencedRelation: "titles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      title_scores: {
-        Row: {
-          avg_stars: number | null
-          ratings_count: number | null
-          title_id: string | null
-        }
-        Relationships: []
-      }
-    }
+      accounts: TableDef<Account, "id">;
+      companies: TableDef<Company, "owner_id" | "name">;
+      company_members: TableDef<CompanyMember, "company_id" | "display_name">;
+      customers: TableDef<Customer, "company_id" | "name">;
+      properties: TableDef<Property, "customer_id" | "address_line1">;
+      service_series: TableDef<
+        ServiceSeries,
+        "company_id" | "customer_id" | "property_id" | "start_date"
+      >;
+      appointments: TableDef<
+        Appointment,
+        "company_id" | "customer_id" | "property_id" | "scheduled_date"
+      >;
+      appointment_assignments: TableDef<AppointmentAssignment, "appointment_id" | "member_id">;
+      appointment_events: TableDef<AppointmentEvent, "appointment_id" | "kind">;
+      appointment_photos: TableDef<AppointmentPhoto, "appointment_id" | "storage_path">;
+      threads: TableDef<Thread, "kind" | "company_id">;
+      thread_messages: TableDef<ThreadMessage, "thread_id" | "sender_id" | "body">;
+      worker_profiles: TableDef<WorkerProfile, "account_id">;
+      worker_availability: TableDef<WorkerAvailability, "account_id" | "date">;
+      gigs: TableDef<Gig, "company_id" | "created_by" | "title" | "date">;
+      gig_applications: TableDef<GigApplication, "gig_id" | "worker_id">;
+      gig_workers: TableDef<GigWorker, "gig_id" | "worker_id">;
+      work_reviews: TableDef<WorkReview, "gig_id" | "author_id" | "subject_kind" | "rating">;
+      payout_periods: TableDef<
+        PayoutPeriod,
+        "company_id" | "member_id" | "start_date" | "end_date"
+      >;
+      payout_adjustments: TableDef<PayoutAdjustment, "period_id" | "label" | "amount">;
+      payout_lines: TableDef<PayoutLine, "period_id" | "label" | "service_date">;
+    };
+    Views: Record<never, never>;
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_matched_with: { Args: { _other: string }; Returns: boolean }
-    }
+      claim_team_invite: { Args: { _code: string }; Returns: string | null };
+      claim_customer_portal: { Args: { _code: string }; Returns: string | null };
+    };
     Enums: {
-      app_role: "admin" | "moderator" | "user"
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
-
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
-
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
-
-export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
-
-export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
-
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  public: {
-    Enums: {
-      app_role: ["admin", "moderator", "user"],
-    },
-  },
-} as const
+      account_role: AccountRole;
+      member_role: MemberRole;
+      recurrence: Recurrence;
+      service_type: ServiceType;
+      appointment_status: AppointmentStatus;
+      appointment_event_kind: AppointmentEventKind;
+      payment_collector: PaymentCollector;
+      pay_model: PayModel;
+      cleaning_skill: CleaningSkill;
+      availability_period: AvailabilityPeriod;
+      gig_status: GigStatus;
+      gig_worker_status: GigWorkerStatus;
+      application_status: ApplicationStatus;
+      thread_kind: ThreadKind;
+      review_subject: ReviewSubject;
+      payout_status: PayoutStatus;
+    };
+    CompositeTypes: Record<never, never>;
+  };
+};
