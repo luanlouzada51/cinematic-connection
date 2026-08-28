@@ -10,31 +10,38 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as CinefilosRouteImport } from './routes/cinefilos'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedChatsRouteImport } from './routes/_authenticated/chats'
-import { Route as AuthenticatedComunidadesRouteImport } from './routes/_authenticated/comunidades'
-import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
-import { Route as AuthenticatedDescobrirRouteImport } from './routes/_authenticated/descobrir'
-import { Route as AuthenticatedListasRouteImport } from './routes/_authenticated/listas'
-import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
-import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
-import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
-import { Route as AuthenticatedPessoasRouteImport } from './routes/_authenticated/pessoas'
-import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
-import { Route as AuthenticatedSessoesRouteImport } from './routes/_authenticated/sessoes'
-import { Route as AuthenticatedChatMatchIdRouteImport } from './routes/_authenticated/chat.$matchId'
-import { Route as AuthenticatedComunidadesSlugRouteImport } from './routes/_authenticated/comunidades.$slug'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
+import { Route as AppProfileRouteImport } from './routes/app/profile'
+import { Route as AppSettingsRouteImport } from './routes/app/settings'
+import { Route as AppTeamRouteImport } from './routes/app/team'
+import { Route as AppTodayRouteImport } from './routes/app/today'
+import { Route as AppVisitsRouteImport } from './routes/app/visits'
+import { Route as AppClientsIndexRouteImport } from './routes/app/clients/index'
+import { Route as AppClientsCustomerIdRouteImport } from './routes/app/clients/$customerId'
+import { Route as AppClientsNewRouteImport } from './routes/app/clients/new'
+import { Route as AppMarketIndexRouteImport } from './routes/app/market/index'
+import { Route as AppMessagesIndexRouteImport } from './routes/app/messages/index'
+import { Route as AppMessagesThreadIdRouteImport } from './routes/app/messages/$threadId'
+import { Route as AppPayoutsIndexRouteImport } from './routes/app/payouts/index'
+import { Route as AppPayoutsPeriodIdRouteImport } from './routes/app/payouts/$periodId'
+import { Route as AppScheduleIndexRouteImport } from './routes/app/schedule/index'
+import { Route as AppScheduleAppointmentIdRouteImport } from './routes/app/schedule/$appointmentId'
+import { Route as AppScheduleNewRouteImport } from './routes/app/schedule/new'
+import { Route as AppMarketGigsGigIdRouteImport } from './routes/app/market/gigs/$gigId'
+import { Route as AppMarketGigsNewRouteImport } from './routes/app/market/gigs/new'
+import { Route as AppMarketWorkersWorkerIdRouteImport } from './routes/app/market/workers/$workerId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -42,211 +49,276 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CinefilosRoute = CinefilosRouteImport.update({
-  id: '/cinefilos',
-  path: '/cinefilos',
-  getParentRoute: () => rootRouteImport,
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedChatsRoute = AuthenticatedChatsRouteImport.update({
-  id: '/chats',
-  path: '/chats',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedComunidadesRoute =
-  AuthenticatedComunidadesRouteImport.update({
-    id: '/comunidades',
-    path: '/comunidades',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
-  id: '/config',
-  path: '/config',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDescobrirRoute = AuthenticatedDescobrirRouteImport.update({
-  id: '/descobrir',
-  path: '/descobrir',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedListasRoute = AuthenticatedListasRouteImport.update({
-  id: '/listas',
-  path: '/listas',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedNotificacoesRoute =
-  AuthenticatedNotificacoesRouteImport.update({
-    id: '/notificacoes',
-    path: '/notificacoes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedPessoasRoute = AuthenticatedPessoasRouteImport.update({
-  id: '/pessoas',
-  path: '/pessoas',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedPremiumRoute = AuthenticatedPremiumRouteImport.update({
-  id: '/premium',
-  path: '/premium',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AppTeamRoute = AppTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedSessoesRoute = AuthenticatedSessoesRouteImport.update({
-  id: '/sessoes',
-  path: '/sessoes',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AppTodayRoute = AppTodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedChatMatchIdRoute =
-  AuthenticatedChatMatchIdRouteImport.update({
-    id: '/chat/$matchId',
-    path: '/chat/$matchId',
-    getParentRoute: () => AuthenticatedRouteRoute,
+const AppVisitsRoute = AppVisitsRouteImport.update({
+  id: '/visits',
+  path: '/visits',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppClientsIndexRoute = AppClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppClientsCustomerIdRoute = AppClientsCustomerIdRouteImport.update({
+  id: '/clients/$customerId',
+  path: '/clients/$customerId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppClientsNewRoute = AppClientsNewRouteImport.update({
+  id: '/clients/new',
+  path: '/clients/new',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMarketIndexRoute = AppMarketIndexRouteImport.update({
+  id: '/market/',
+  path: '/market/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMessagesIndexRoute = AppMessagesIndexRouteImport.update({
+  id: '/messages/',
+  path: '/messages/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMessagesThreadIdRoute = AppMessagesThreadIdRouteImport.update({
+  id: '/messages/$threadId',
+  path: '/messages/$threadId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppPayoutsIndexRoute = AppPayoutsIndexRouteImport.update({
+  id: '/payouts/',
+  path: '/payouts/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppPayoutsPeriodIdRoute = AppPayoutsPeriodIdRouteImport.update({
+  id: '/payouts/$periodId',
+  path: '/payouts/$periodId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppScheduleIndexRoute = AppScheduleIndexRouteImport.update({
+  id: '/schedule/',
+  path: '/schedule/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppScheduleAppointmentIdRoute =
+  AppScheduleAppointmentIdRouteImport.update({
+    id: '/schedule/$appointmentId',
+    path: '/schedule/$appointmentId',
+    getParentRoute: () => AppRouteRoute,
   } as any)
-const AuthenticatedComunidadesSlugRoute =
-  AuthenticatedComunidadesSlugRouteImport.update({
-    id: '/$slug',
-    path: '/$slug',
-    getParentRoute: () => AuthenticatedComunidadesRoute,
+const AppScheduleNewRoute = AppScheduleNewRouteImport.update({
+  id: '/schedule/new',
+  path: '/schedule/new',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMarketGigsGigIdRoute = AppMarketGigsGigIdRouteImport.update({
+  id: '/market/gigs/$gigId',
+  path: '/market/gigs/$gigId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMarketGigsNewRoute = AppMarketGigsNewRouteImport.update({
+  id: '/market/gigs/new',
+  path: '/market/gigs/new',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMarketWorkersWorkerIdRoute =
+  AppMarketWorkersWorkerIdRouteImport.update({
+    id: '/market/workers/$workerId',
+    path: '/market/workers/$workerId',
+    getParentRoute: () => AppRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/cinefilos': typeof CinefilosRoute
-  '/admin': typeof AuthenticatedAdminRoute
-  '/chats': typeof AuthenticatedChatsRoute
-  '/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
-  '/config': typeof AuthenticatedConfigRoute
-  '/descobrir': typeof AuthenticatedDescobrirRoute
-  '/listas': typeof AuthenticatedListasRoute
-  '/notificacoes': typeof AuthenticatedNotificacoesRoute
-  '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/perfil': typeof AuthenticatedPerfilRoute
-  '/pessoas': typeof AuthenticatedPessoasRoute
-  '/premium': typeof AuthenticatedPremiumRoute
-  '/sessoes': typeof AuthenticatedSessoesRoute
-  '/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
-  '/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
+  '/app/onboarding': typeof AppOnboardingRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/today': typeof AppTodayRoute
+  '/app/visits': typeof AppVisitsRoute
+  '/app/': typeof AppIndexRoute
+  '/app/clients/$customerId': typeof AppClientsCustomerIdRoute
+  '/app/clients/new': typeof AppClientsNewRoute
+  '/app/messages/$threadId': typeof AppMessagesThreadIdRoute
+  '/app/payouts/$periodId': typeof AppPayoutsPeriodIdRoute
+  '/app/schedule/$appointmentId': typeof AppScheduleAppointmentIdRoute
+  '/app/schedule/new': typeof AppScheduleNewRoute
+  '/app/clients/': typeof AppClientsIndexRoute
+  '/app/market/': typeof AppMarketIndexRoute
+  '/app/messages/': typeof AppMessagesIndexRoute
+  '/app/payouts/': typeof AppPayoutsIndexRoute
+  '/app/schedule/': typeof AppScheduleIndexRoute
+  '/app/market/gigs/$gigId': typeof AppMarketGigsGigIdRoute
+  '/app/market/gigs/new': typeof AppMarketGigsNewRoute
+  '/app/market/workers/$workerId': typeof AppMarketWorkersWorkerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/cinefilos': typeof CinefilosRoute
-  '/admin': typeof AuthenticatedAdminRoute
-  '/chats': typeof AuthenticatedChatsRoute
-  '/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
-  '/config': typeof AuthenticatedConfigRoute
-  '/descobrir': typeof AuthenticatedDescobrirRoute
-  '/listas': typeof AuthenticatedListasRoute
-  '/notificacoes': typeof AuthenticatedNotificacoesRoute
-  '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/perfil': typeof AuthenticatedPerfilRoute
-  '/pessoas': typeof AuthenticatedPessoasRoute
-  '/premium': typeof AuthenticatedPremiumRoute
-  '/sessoes': typeof AuthenticatedSessoesRoute
-  '/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
-  '/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
+  '/app/onboarding': typeof AppOnboardingRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/today': typeof AppTodayRoute
+  '/app/visits': typeof AppVisitsRoute
+  '/app': typeof AppIndexRoute
+  '/app/clients/$customerId': typeof AppClientsCustomerIdRoute
+  '/app/clients/new': typeof AppClientsNewRoute
+  '/app/messages/$threadId': typeof AppMessagesThreadIdRoute
+  '/app/payouts/$periodId': typeof AppPayoutsPeriodIdRoute
+  '/app/schedule/$appointmentId': typeof AppScheduleAppointmentIdRoute
+  '/app/schedule/new': typeof AppScheduleNewRoute
+  '/app/clients': typeof AppClientsIndexRoute
+  '/app/market': typeof AppMarketIndexRoute
+  '/app/messages': typeof AppMessagesIndexRoute
+  '/app/payouts': typeof AppPayoutsIndexRoute
+  '/app/schedule': typeof AppScheduleIndexRoute
+  '/app/market/gigs/$gigId': typeof AppMarketGigsGigIdRoute
+  '/app/market/gigs/new': typeof AppMarketGigsNewRoute
+  '/app/market/workers/$workerId': typeof AppMarketWorkersWorkerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/app': typeof AppRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/cinefilos': typeof CinefilosRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
-  '/_authenticated/chats': typeof AuthenticatedChatsRoute
-  '/_authenticated/comunidades': typeof AuthenticatedComunidadesRouteWithChildren
-  '/_authenticated/config': typeof AuthenticatedConfigRoute
-  '/_authenticated/descobrir': typeof AuthenticatedDescobrirRoute
-  '/_authenticated/listas': typeof AuthenticatedListasRoute
-  '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
-  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
-  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
-  '/_authenticated/pessoas': typeof AuthenticatedPessoasRoute
-  '/_authenticated/premium': typeof AuthenticatedPremiumRoute
-  '/_authenticated/sessoes': typeof AuthenticatedSessoesRoute
-  '/_authenticated/chat/$matchId': typeof AuthenticatedChatMatchIdRoute
-  '/_authenticated/comunidades/$slug': typeof AuthenticatedComunidadesSlugRoute
+  '/app/onboarding': typeof AppOnboardingRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/today': typeof AppTodayRoute
+  '/app/visits': typeof AppVisitsRoute
+  '/app/': typeof AppIndexRoute
+  '/app/clients/$customerId': typeof AppClientsCustomerIdRoute
+  '/app/clients/new': typeof AppClientsNewRoute
+  '/app/messages/$threadId': typeof AppMessagesThreadIdRoute
+  '/app/payouts/$periodId': typeof AppPayoutsPeriodIdRoute
+  '/app/schedule/$appointmentId': typeof AppScheduleAppointmentIdRoute
+  '/app/schedule/new': typeof AppScheduleNewRoute
+  '/app/clients/': typeof AppClientsIndexRoute
+  '/app/market/': typeof AppMarketIndexRoute
+  '/app/messages/': typeof AppMessagesIndexRoute
+  '/app/payouts/': typeof AppPayoutsIndexRoute
+  '/app/schedule/': typeof AppScheduleIndexRoute
+  '/app/market/gigs/$gigId': typeof AppMarketGigsGigIdRoute
+  '/app/market/gigs/new': typeof AppMarketGigsNewRoute
+  '/app/market/workers/$workerId': typeof AppMarketWorkersWorkerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app'
     | '/auth'
-    | '/cinefilos'
-    | '/admin'
-    | '/chats'
-    | '/comunidades'
-    | '/config'
-    | '/descobrir'
-    | '/listas'
-    | '/notificacoes'
-    | '/onboarding'
-    | '/perfil'
-    | '/pessoas'
-    | '/premium'
-    | '/sessoes'
-    | '/chat/$matchId'
-    | '/comunidades/$slug'
+    | '/app/onboarding'
+    | '/app/profile'
+    | '/app/settings'
+    | '/app/team'
+    | '/app/today'
+    | '/app/visits'
+    | '/app/'
+    | '/app/clients/$customerId'
+    | '/app/clients/new'
+    | '/app/messages/$threadId'
+    | '/app/payouts/$periodId'
+    | '/app/schedule/$appointmentId'
+    | '/app/schedule/new'
+    | '/app/clients/'
+    | '/app/market/'
+    | '/app/messages/'
+    | '/app/payouts/'
+    | '/app/schedule/'
+    | '/app/market/gigs/$gigId'
+    | '/app/market/gigs/new'
+    | '/app/market/workers/$workerId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
-    | '/cinefilos'
-    | '/admin'
-    | '/chats'
-    | '/comunidades'
-    | '/config'
-    | '/descobrir'
-    | '/listas'
-    | '/notificacoes'
-    | '/onboarding'
-    | '/perfil'
-    | '/pessoas'
-    | '/premium'
-    | '/sessoes'
-    | '/chat/$matchId'
-    | '/comunidades/$slug'
+    | '/app/onboarding'
+    | '/app/profile'
+    | '/app/settings'
+    | '/app/team'
+    | '/app/today'
+    | '/app/visits'
+    | '/app'
+    | '/app/clients/$customerId'
+    | '/app/clients/new'
+    | '/app/messages/$threadId'
+    | '/app/payouts/$periodId'
+    | '/app/schedule/$appointmentId'
+    | '/app/schedule/new'
+    | '/app/clients'
+    | '/app/market'
+    | '/app/messages'
+    | '/app/payouts'
+    | '/app/schedule'
+    | '/app/market/gigs/$gigId'
+    | '/app/market/gigs/new'
+    | '/app/market/workers/$workerId'
   id:
     | '__root__'
     | '/'
-    | '/_authenticated'
+    | '/app'
     | '/auth'
-    | '/cinefilos'
-    | '/_authenticated/admin'
-    | '/_authenticated/chats'
-    | '/_authenticated/comunidades'
-    | '/_authenticated/config'
-    | '/_authenticated/descobrir'
-    | '/_authenticated/listas'
-    | '/_authenticated/notificacoes'
-    | '/_authenticated/onboarding'
-    | '/_authenticated/perfil'
-    | '/_authenticated/pessoas'
-    | '/_authenticated/premium'
-    | '/_authenticated/sessoes'
-    | '/_authenticated/chat/$matchId'
-    | '/_authenticated/comunidades/$slug'
+    | '/app/onboarding'
+    | '/app/profile'
+    | '/app/settings'
+    | '/app/team'
+    | '/app/today'
+    | '/app/visits'
+    | '/app/'
+    | '/app/clients/$customerId'
+    | '/app/clients/new'
+    | '/app/messages/$threadId'
+    | '/app/payouts/$periodId'
+    | '/app/schedule/$appointmentId'
+    | '/app/schedule/new'
+    | '/app/clients/'
+    | '/app/market/'
+    | '/app/messages/'
+    | '/app/payouts/'
+    | '/app/schedule/'
+    | '/app/market/gigs/$gigId'
+    | '/app/market/gigs/new'
+    | '/app/market/workers/$workerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  CinefilosRoute: typeof CinefilosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -258,11 +330,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -272,168 +344,212 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cinefilos': {
-      id: '/cinefilos'
-      path: '/cinefilos'
-      fullPath: '/cinefilos'
-      preLoaderRoute: typeof CinefilosRouteImport
-      parentRoute: typeof rootRouteImport
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/chats': {
-      id: '/_authenticated/chats'
-      path: '/chats'
-      fullPath: '/chats'
-      preLoaderRoute: typeof AuthenticatedChatsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/comunidades': {
-      id: '/_authenticated/comunidades'
-      path: '/comunidades'
-      fullPath: '/comunidades'
-      preLoaderRoute: typeof AuthenticatedComunidadesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/config': {
-      id: '/_authenticated/config'
-      path: '/config'
-      fullPath: '/config'
-      preLoaderRoute: typeof AuthenticatedConfigRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/descobrir': {
-      id: '/_authenticated/descobrir'
-      path: '/descobrir'
-      fullPath: '/descobrir'
-      preLoaderRoute: typeof AuthenticatedDescobrirRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/listas': {
-      id: '/_authenticated/listas'
-      path: '/listas'
-      fullPath: '/listas'
-      preLoaderRoute: typeof AuthenticatedListasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/notificacoes': {
-      id: '/_authenticated/notificacoes'
-      path: '/notificacoes'
-      fullPath: '/notificacoes'
-      preLoaderRoute: typeof AuthenticatedNotificacoesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/onboarding': {
-      id: '/_authenticated/onboarding'
+    '/app/onboarding': {
+      id: '/app/onboarding'
       path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/perfil': {
-      id: '/_authenticated/perfil'
-      path: '/perfil'
-      fullPath: '/perfil'
-      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/app/profile': {
+      id: '/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/pessoas': {
-      id: '/_authenticated/pessoas'
-      path: '/pessoas'
-      fullPath: '/pessoas'
-      preLoaderRoute: typeof AuthenticatedPessoasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/premium': {
-      id: '/_authenticated/premium'
-      path: '/premium'
-      fullPath: '/premium'
-      preLoaderRoute: typeof AuthenticatedPremiumRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/app/team': {
+      id: '/app/team'
+      path: '/team'
+      fullPath: '/app/team'
+      preLoaderRoute: typeof AppTeamRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/sessoes': {
-      id: '/_authenticated/sessoes'
-      path: '/sessoes'
-      fullPath: '/sessoes'
-      preLoaderRoute: typeof AuthenticatedSessoesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/app/today': {
+      id: '/app/today'
+      path: '/today'
+      fullPath: '/app/today'
+      preLoaderRoute: typeof AppTodayRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/chat/$matchId': {
-      id: '/_authenticated/chat/$matchId'
-      path: '/chat/$matchId'
-      fullPath: '/chat/$matchId'
-      preLoaderRoute: typeof AuthenticatedChatMatchIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/app/visits': {
+      id: '/app/visits'
+      path: '/visits'
+      fullPath: '/app/visits'
+      preLoaderRoute: typeof AppVisitsRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/comunidades/$slug': {
-      id: '/_authenticated/comunidades/$slug'
-      path: '/$slug'
-      fullPath: '/comunidades/$slug'
-      preLoaderRoute: typeof AuthenticatedComunidadesSlugRouteImport
-      parentRoute: typeof AuthenticatedComunidadesRoute
+    '/app/clients/': {
+      id: '/app/clients/'
+      path: '/clients'
+      fullPath: '/app/clients/'
+      preLoaderRoute: typeof AppClientsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/clients/$customerId': {
+      id: '/app/clients/$customerId'
+      path: '/clients/$customerId'
+      fullPath: '/app/clients/$customerId'
+      preLoaderRoute: typeof AppClientsCustomerIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/clients/new': {
+      id: '/app/clients/new'
+      path: '/clients/new'
+      fullPath: '/app/clients/new'
+      preLoaderRoute: typeof AppClientsNewRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/market/': {
+      id: '/app/market/'
+      path: '/market'
+      fullPath: '/app/market/'
+      preLoaderRoute: typeof AppMarketIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/messages/': {
+      id: '/app/messages/'
+      path: '/messages'
+      fullPath: '/app/messages/'
+      preLoaderRoute: typeof AppMessagesIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/messages/$threadId': {
+      id: '/app/messages/$threadId'
+      path: '/messages/$threadId'
+      fullPath: '/app/messages/$threadId'
+      preLoaderRoute: typeof AppMessagesThreadIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/payouts/': {
+      id: '/app/payouts/'
+      path: '/payouts'
+      fullPath: '/app/payouts/'
+      preLoaderRoute: typeof AppPayoutsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/payouts/$periodId': {
+      id: '/app/payouts/$periodId'
+      path: '/payouts/$periodId'
+      fullPath: '/app/payouts/$periodId'
+      preLoaderRoute: typeof AppPayoutsPeriodIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/schedule/': {
+      id: '/app/schedule/'
+      path: '/schedule'
+      fullPath: '/app/schedule/'
+      preLoaderRoute: typeof AppScheduleIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/schedule/$appointmentId': {
+      id: '/app/schedule/$appointmentId'
+      path: '/schedule/$appointmentId'
+      fullPath: '/app/schedule/$appointmentId'
+      preLoaderRoute: typeof AppScheduleAppointmentIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/schedule/new': {
+      id: '/app/schedule/new'
+      path: '/schedule/new'
+      fullPath: '/app/schedule/new'
+      preLoaderRoute: typeof AppScheduleNewRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/market/gigs/$gigId': {
+      id: '/app/market/gigs/$gigId'
+      path: '/market/gigs/$gigId'
+      fullPath: '/app/market/gigs/$gigId'
+      preLoaderRoute: typeof AppMarketGigsGigIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/market/gigs/new': {
+      id: '/app/market/gigs/new'
+      path: '/market/gigs/new'
+      fullPath: '/app/market/gigs/new'
+      preLoaderRoute: typeof AppMarketGigsNewRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/market/workers/$workerId': {
+      id: '/app/market/workers/$workerId'
+      path: '/market/workers/$workerId'
+      fullPath: '/app/market/workers/$workerId'
+      preLoaderRoute: typeof AppMarketWorkersWorkerIdRouteImport
+      parentRoute: typeof AppRouteRoute
     }
   }
 }
 
-interface AuthenticatedComunidadesRouteChildren {
-  AuthenticatedComunidadesSlugRoute: typeof AuthenticatedComunidadesSlugRoute
+interface AppRouteRouteChildren {
+  AppOnboardingRoute: typeof AppOnboardingRoute
+  AppProfileRoute: typeof AppProfileRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppTeamRoute: typeof AppTeamRoute
+  AppTodayRoute: typeof AppTodayRoute
+  AppVisitsRoute: typeof AppVisitsRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppClientsCustomerIdRoute: typeof AppClientsCustomerIdRoute
+  AppClientsNewRoute: typeof AppClientsNewRoute
+  AppMessagesThreadIdRoute: typeof AppMessagesThreadIdRoute
+  AppPayoutsPeriodIdRoute: typeof AppPayoutsPeriodIdRoute
+  AppScheduleAppointmentIdRoute: typeof AppScheduleAppointmentIdRoute
+  AppScheduleNewRoute: typeof AppScheduleNewRoute
+  AppClientsIndexRoute: typeof AppClientsIndexRoute
+  AppMarketIndexRoute: typeof AppMarketIndexRoute
+  AppMessagesIndexRoute: typeof AppMessagesIndexRoute
+  AppPayoutsIndexRoute: typeof AppPayoutsIndexRoute
+  AppScheduleIndexRoute: typeof AppScheduleIndexRoute
+  AppMarketGigsGigIdRoute: typeof AppMarketGigsGigIdRoute
+  AppMarketGigsNewRoute: typeof AppMarketGigsNewRoute
+  AppMarketWorkersWorkerIdRoute: typeof AppMarketWorkersWorkerIdRoute
 }
 
-const AuthenticatedComunidadesRouteChildren: AuthenticatedComunidadesRouteChildren =
-  {
-    AuthenticatedComunidadesSlugRoute: AuthenticatedComunidadesSlugRoute,
-  }
-
-const AuthenticatedComunidadesRouteWithChildren =
-  AuthenticatedComunidadesRoute._addFileChildren(
-    AuthenticatedComunidadesRouteChildren,
-  )
-
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedChatsRoute: typeof AuthenticatedChatsRoute
-  AuthenticatedComunidadesRoute: typeof AuthenticatedComunidadesRouteWithChildren
-  AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
-  AuthenticatedDescobrirRoute: typeof AuthenticatedDescobrirRoute
-  AuthenticatedListasRoute: typeof AuthenticatedListasRoute
-  AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
-  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
-  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
-  AuthenticatedPessoasRoute: typeof AuthenticatedPessoasRoute
-  AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
-  AuthenticatedSessoesRoute: typeof AuthenticatedSessoesRoute
-  AuthenticatedChatMatchIdRoute: typeof AuthenticatedChatMatchIdRoute
+const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppOnboardingRoute: AppOnboardingRoute,
+  AppProfileRoute: AppProfileRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppTeamRoute: AppTeamRoute,
+  AppTodayRoute: AppTodayRoute,
+  AppVisitsRoute: AppVisitsRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppClientsCustomerIdRoute: AppClientsCustomerIdRoute,
+  AppClientsNewRoute: AppClientsNewRoute,
+  AppMessagesThreadIdRoute: AppMessagesThreadIdRoute,
+  AppPayoutsPeriodIdRoute: AppPayoutsPeriodIdRoute,
+  AppScheduleAppointmentIdRoute: AppScheduleAppointmentIdRoute,
+  AppScheduleNewRoute: AppScheduleNewRoute,
+  AppClientsIndexRoute: AppClientsIndexRoute,
+  AppMarketIndexRoute: AppMarketIndexRoute,
+  AppMessagesIndexRoute: AppMessagesIndexRoute,
+  AppPayoutsIndexRoute: AppPayoutsIndexRoute,
+  AppScheduleIndexRoute: AppScheduleIndexRoute,
+  AppMarketGigsGigIdRoute: AppMarketGigsGigIdRoute,
+  AppMarketGigsNewRoute: AppMarketGigsNewRoute,
+  AppMarketWorkersWorkerIdRoute: AppMarketWorkersWorkerIdRoute,
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedChatsRoute: AuthenticatedChatsRoute,
-  AuthenticatedComunidadesRoute: AuthenticatedComunidadesRouteWithChildren,
-  AuthenticatedConfigRoute: AuthenticatedConfigRoute,
-  AuthenticatedDescobrirRoute: AuthenticatedDescobrirRoute,
-  AuthenticatedListasRoute: AuthenticatedListasRoute,
-  AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
-  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
-  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
-  AuthenticatedPessoasRoute: AuthenticatedPessoasRoute,
-  AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
-  AuthenticatedSessoesRoute: AuthenticatedSessoesRoute,
-  AuthenticatedChatMatchIdRoute: AuthenticatedChatMatchIdRoute,
-}
-
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AppRouteRoute: AppRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  CinefilosRoute: CinefilosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
