@@ -47,6 +47,24 @@ export function occurrenceDates(
   return dates;
 }
 
+/**
+ * Datas seguintes a uma visita já existente, mantendo a mesma cadência.
+ *
+ * É o que renova um contrato: a contagem continua de onde a agenda parou, em
+ * vez de recomeçar da data original e repetir dias que já passaram.
+ */
+export function nextOccurrenceDates(
+  lastDate: string,
+  recurrence: Recurrence,
+  count: number,
+): string[] {
+  if (recurrence === "one_time") return [];
+  return occurrenceDates(lastDate, recurrence, count + 1).slice(1);
+}
+
+/** Abaixo disso um contrato ativo é considerado "acabando". */
+export const LOW_OCCURRENCE_THRESHOLD = 3;
+
 /** Quantas visitas adiantar por padrão ao criar um contrato. */
 export function defaultOccurrenceCount(recurrence: Recurrence): number {
   switch (recurrence) {

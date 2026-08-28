@@ -150,6 +150,27 @@ export const pt = {
   "schedule.past": "Anteriores",
   "schedule.jobsCount": "{count} serviço(s)",
   "schedule.dayTotal": "Total do dia",
+  "schedule.day": "Dia",
+  "schedule.week": "Semana",
+  "schedule.allTeam": "Toda a equipe",
+  "schedule.weekTotal": "Total da semana",
+  "schedule.emptyWeek": "Nenhum serviço nesta semana.",
+
+  // Contratos recorrentes
+  "contract.upcoming": "{count} visitas futuras",
+  "contract.lastVisit": "Última gerada: {date}",
+  "contract.extend": "Gerar mais visitas",
+  "contract.extended": "{count} visitas criadas",
+  "contract.ending": "Acabando",
+  "contract.pause": "Pausar",
+  "contract.resume": "Reativar",
+  "contract.paused": "Pausado",
+  "contract.removeFutureConfirm":
+    "Contrato pausado. Remover também as visitas futuras já marcadas?",
+  "contract.lowBanner": "{count} contrato(s) sem visitas suficientes na agenda",
+  "contract.generateAll": "Gerar agora",
+  "contract.howMany": "Quantas visitas",
+  "contract.oneTime": "Serviço avulso, não se repete.",
 
   // Serviço
   "job.new": "Novo serviço",
@@ -161,6 +182,8 @@ export const pt = {
   "job.startDate": "Primeira data",
   "job.date": "Data",
   "job.startTime": "Início",
+  "job.endTime": "Fim",
+  "job.reschedule": "Remarcar",
   "job.duration": "Duração (min)",
   "job.price": "Preço",
   "job.priceHidden": "Preço oculto pela empresa",

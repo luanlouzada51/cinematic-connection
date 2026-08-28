@@ -25,19 +25,21 @@ import {
   type PropertyDraft,
 } from "@/features/customers/property-draft";
 import { useEnsureThread } from "@/features/messaging/api";
-import { formatMoney, formatTime } from "@/lib/format";
+import { useSeriesHealth } from "@/features/schedule/api";
+import { ContractCard } from "@/features/schedule/ContractCard";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/clients/$customerId")({ component: ClientDetail });
 
 function ClientDetail() {
   const { customerId } = Route.useParams();
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { company, isManager } = useSession();
 
   const directory = useDirectory(company?.id);
   const series = useCustomerSeries(customerId);
+  const health = useSeriesHealth(company?.id);
   const updateCustomer = useUpdateCustomer(company?.id);
   const deleteCustomer = useDeleteCustomer(company?.id);
   const saveProperty = useSaveProperty(company?.id);
@@ -226,17 +228,19 @@ function ClientDetail() {
           {(series.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("common.none")}</p>
           ) : (
-            series.data?.map((plan) => (
-              <div key={plan.id} className="rounded-lg border border-border p-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{t(`recurrence.${plan.recurrence}`)}</span>
-                  <span className="font-semibold">{formatMoney(plan.price, locale)}</span>
-                </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {t(`service.${plan.service_type}`)} · {formatTime(plan.start_time, locale)}
-                </p>
-              </div>
-            ))
+            series.data?.map((plan) => {
+              const status = health.data?.find((entry) => entry.series.id === plan.id);
+              return (
+                <ContractCard
+                  key={plan.id}
+                  series={plan}
+                  companyId={company?.id}
+                  upcoming={status?.upcoming ?? 0}
+                  lastDate={status?.lastDate ?? plan.start_date}
+                  editable={isManager}
+                />
+              );
+            })
           )}
         </CardContent>
       </Card>

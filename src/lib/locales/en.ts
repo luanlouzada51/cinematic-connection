@@ -152,6 +152,27 @@ export const en: Record<keyof typeof pt, string> = {
   "schedule.past": "Past",
   "schedule.jobsCount": "{count} job(s)",
   "schedule.dayTotal": "Day total",
+  "schedule.day": "Day",
+  "schedule.week": "Week",
+  "schedule.allTeam": "Whole team",
+  "schedule.weekTotal": "Week total",
+  "schedule.emptyWeek": "No jobs this week.",
+
+  // Recurring contracts
+  "contract.upcoming": "{count} upcoming visits",
+  "contract.lastVisit": "Last generated: {date}",
+  "contract.extend": "Generate more visits",
+  "contract.extended": "{count} visits created",
+  "contract.ending": "Running out",
+  "contract.pause": "Pause",
+  "contract.resume": "Resume",
+  "contract.paused": "Paused",
+  "contract.removeFutureConfirm":
+    "Contract paused. Also remove the upcoming visits already booked?",
+  "contract.lowBanner": "{count} contract(s) running out of booked visits",
+  "contract.generateAll": "Generate now",
+  "contract.howMany": "How many visits",
+  "contract.oneTime": "One-off job, it doesn't repeat.",
 
   // Job
   "job.new": "New job",
@@ -163,6 +184,8 @@ export const en: Record<keyof typeof pt, string> = {
   "job.startDate": "First date",
   "job.date": "Date",
   "job.startTime": "Start",
+  "job.endTime": "End",
+  "job.reschedule": "Reschedule",
   "job.duration": "Duration (min)",
   "job.price": "Price",
   "job.priceHidden": "Price hidden by the company",

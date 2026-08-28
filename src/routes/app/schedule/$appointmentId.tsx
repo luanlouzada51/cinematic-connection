@@ -23,9 +23,14 @@ import {
   useUpdateAppointment,
 } from "@/features/schedule/api";
 import { StatusBadge } from "@/features/schedule/components";
+import { SERVICE_TYPES } from "@/features/schedule/constants";
 import { Timeline } from "@/features/schedule/Timeline";
 import { publicPhotoUrl, useAppointmentPhotos, useUploadPhoto } from "@/features/schedule/photos";
-import type { AppointmentEventKind, PaymentCollector } from "@/integrations/supabase/types";
+import type {
+  AppointmentEventKind,
+  PaymentCollector,
+  ServiceType,
+} from "@/integrations/supabase/types";
 import { formatDate, formatMoney, formatTime } from "@/lib/format";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
 
@@ -166,6 +171,61 @@ function JobDetail() {
             </Button>
           ))}
         </div>
+      ) : null}
+
+      {isManager ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("job.reschedule")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <Field label={t("job.date")}>
+              <Input
+                type="date"
+                defaultValue={job.scheduled_date}
+                onChange={(event) =>
+                  event.target.value &&
+                  updateAppointment.mutate({ scheduled_date: event.target.value })
+                }
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t("job.startTime")}>
+                <Input
+                  type="time"
+                  defaultValue={job.start_time.slice(0, 5)}
+                  onChange={(event) =>
+                    event.target.value &&
+                    updateAppointment.mutate({ start_time: event.target.value })
+                  }
+                />
+              </Field>
+              <Field label={t("job.endTime")}>
+                <Input
+                  type="time"
+                  defaultValue={job.end_time?.slice(0, 5) ?? ""}
+                  onChange={(event) =>
+                    updateAppointment.mutate({ end_time: event.target.value || null })
+                  }
+                />
+              </Field>
+            </div>
+            <Field label={t("job.service")}>
+              <Select
+                value={job.service_type}
+                onChange={(event) =>
+                  updateAppointment.mutate({ service_type: event.target.value as ServiceType })
+                }
+              >
+                {SERVICE_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {t(`service.${type}`)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </CardContent>
+        </Card>
       ) : null}
 
       <Card>

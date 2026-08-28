@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/states";
 import { useSession } from "@/features/auth/session";
 import { useDirectory } from "@/features/company/directory";
 import { useCreateService } from "@/features/schedule/api";
+import { SERVICE_TYPES } from "@/features/schedule/constants";
 import {
   defaultOccurrenceCount,
   occurrenceDates,
@@ -19,14 +20,6 @@ import { toDateOnly } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/schedule/new")({ component: NewServicePage });
-
-const SERVICE_TYPES: ServiceType[] = [
-  "standard",
-  "deep_clean",
-  "move_in_out",
-  "post_construction",
-  "office",
-];
 
 function NewServicePage() {
   const { t } = useI18n();

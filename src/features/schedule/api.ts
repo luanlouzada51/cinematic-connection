@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addDays } from "date-fns";
 
 import { supabase } from "@/integrations/supabase/client";
 import type {
@@ -9,10 +10,15 @@ import type {
   AppointmentStatus,
   PaymentCollector,
   Recurrence,
+  ServiceSeries,
   ServiceType,
 } from "@/integrations/supabase/types";
-import { addMinutesToTime } from "@/lib/format";
-import { defaultOccurrenceCount, occurrenceDates } from "@/features/schedule/recurrence";
+import { addMinutesToTime, toDateOnly } from "@/lib/format";
+import {
+  defaultOccurrenceCount,
+  nextOccurrenceDates,
+  occurrenceDates,
+} from "@/features/schedule/recurrence";
 
 export const scheduleKeys = {
   range: (companyId: string | undefined, from: string, to: string) =>
@@ -316,6 +322,182 @@ export function useDeleteAppointment() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Contratos recorrentes
+//
+// As visitas são geradas em lote na criação do contrato. Sem renovação, a
+// agenda simplesmente esvazia quando o lote acaba — então a empresa precisa
+// enxergar quais contratos estão no fim e conseguir esticá-los em um toque.
+// ---------------------------------------------------------------------------
+
+/** Até quanto tempo atrás procuramos a última visita de um contrato. */
+const SERIES_LOOKBACK_DAYS = 120;
+
+export type SeriesHealth = {
+  series: ServiceSeries;
+  /** Visitas futuras já criadas (hoje inclusive). */
+  upcoming: number;
+  /** Data da última visita gerada — é de onde a renovação continua. */
+  lastDate: string;
+};
+
+export function useSeriesHealth(companyId: string | undefined) {
+  return useQuery({
+    queryKey: ["series-health", companyId],
+    queryFn: async (): Promise<SeriesHealth[]> => {
+      const today = toDateOnly(new Date());
+      const since = toDateOnly(addDays(new Date(), -SERIES_LOOKBACK_DAYS));
+
+      const [seriesResult, appointmentsResult] = await Promise.all([
+        supabase
+          .from("service_series")
+          .select("*")
+          .eq("company_id", companyId!)
+          .eq("active", true)
+          .neq("recurrence", "one_time"),
+        supabase
+          .from("appointments")
+          .select("*")
+          .eq("company_id", companyId!)
+          .gte("scheduled_date", since)
+          .neq("status", "canceled"),
+      ]);
+
+      if (seriesResult.error) throw seriesResult.error;
+      if (appointmentsResult.error) throw appointmentsResult.error;
+
+      return seriesResult.data.map((series) => {
+        const own = appointmentsResult.data.filter(
+          (appointment) => appointment.series_id === series.id,
+        );
+        const dates = own.map((appointment) => appointment.scheduled_date).sort();
+
+        return {
+          series,
+          upcoming: dates.filter((date) => date >= today).length,
+          lastDate: dates.at(-1) ?? series.start_date,
+        };
+      });
+    },
+    enabled: Boolean(companyId),
+  });
+}
+
+export function useUpdateSeries(companyId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<ServiceSeries> }) => {
+      const { error } = await supabase.from("service_series").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["customer-series"] });
+      void queryClient.invalidateQueries({ queryKey: ["series-health", companyId] });
+    },
+  });
+}
+
+/**
+ * Cria as próximas visitas de um contrato a partir da última já existente,
+ * herdando a equipe da visita mais recente — quem limpa aquela casa costuma
+ * ser sempre a mesma pessoa, e refazer isso à mão a cada renovação é o tipo de
+ * trabalho que faz a empresa desistir do app.
+ */
+export function useExtendSeries(companyId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ series, lastDate, count }: ExtendSeriesInput) => {
+      const dates = nextOccurrenceDates(lastDate, series.recurrence, count);
+      if (dates.length === 0) return 0;
+
+      const { data: latest, error: latestError } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("series_id", series.id)
+        .order("scheduled_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (latestError) throw latestError;
+
+      const memberIds = latest ? await assignedMemberIds(latest.id) : [];
+
+      const { data: created, error } = await supabase
+        .from("appointments")
+        .insert(
+          dates.map((date) => ({
+            company_id: series.company_id,
+            customer_id: series.customer_id,
+            property_id: series.property_id,
+            series_id: series.id,
+            service_type: series.service_type,
+            scheduled_date: date,
+            start_time: series.start_time,
+            end_time: addMinutesToTime(series.start_time, series.duration_minutes),
+            price: series.price,
+            notes: series.notes,
+          })),
+        )
+        .select();
+      if (error) throw error;
+
+      if (memberIds.length > 0) {
+        const { error: assignError } = await supabase.from("appointment_assignments").insert(
+          created.flatMap((appointment) =>
+            memberIds.map((memberId) => ({
+              appointment_id: appointment.id,
+              member_id: memberId,
+            })),
+          ),
+        );
+        if (assignError) throw assignError;
+      }
+
+      return created.length;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      void queryClient.invalidateQueries({ queryKey: ["series-health", companyId] });
+    },
+  });
+}
+
+export type ExtendSeriesInput = { series: ServiceSeries; lastDate: string; count: number };
+
+async function assignedMemberIds(appointmentId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("appointment_assignments")
+    .select("*")
+    .eq("appointment_id", appointmentId);
+  if (error) throw error;
+  return data.map((assignment) => assignment.member_id);
+}
+
+/**
+ * Remove as visitas futuras ainda não iniciadas de um contrato. Usado ao pausar:
+ * o que já aconteceu fica no histórico, o que estava marcado some da agenda.
+ */
+export function useCancelFutureOccurrences(companyId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (seriesId: string) => {
+      const { error } = await supabase
+        .from("appointments")
+        .delete()
+        .eq("series_id", seriesId)
+        .eq("status", "scheduled")
+        .gte("scheduled_date", toDateOnly(new Date()));
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      void queryClient.invalidateQueries({ queryKey: ["series-health", companyId] });
     },
   });
 }
