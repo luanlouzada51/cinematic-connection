@@ -278,6 +278,9 @@ export type GigWorker = {
   agreed_daily_rate: number | null;
   agreed_hourly_rate: number | null;
   agreed_percentage: number | null;
+  /** Valor das casas feitas neste trabalho — base da porcentagem combinada. */
+  house_revenue: number;
+  collected_by: PaymentCollector;
   created_at: string;
 };
 
@@ -296,7 +299,10 @@ export type WorkReview = {
 export type PayoutPeriod = {
   id: string;
   company_id: string;
-  member_id: string;
+  /** Acerto de alguém da equipe... */
+  member_id: string | null;
+  /** ...ou de alguém contratado pelo mercado. Sempre exatamente um dos dois. */
+  worker_account_id: string | null;
   start_date: string;
   end_date: string;
   pay_model: PayModel;
@@ -322,6 +328,7 @@ export type PayoutLine = {
   id: string;
   period_id: string;
   appointment_id: string | null;
+  gig_id: string | null;
   label: string;
   service_date: string;
   gross: number;
@@ -358,10 +365,7 @@ export type Database = {
       gig_applications: TableDef<GigApplication, "gig_id" | "worker_id">;
       gig_workers: TableDef<GigWorker, "gig_id" | "worker_id">;
       work_reviews: TableDef<WorkReview, "gig_id" | "author_id" | "subject_kind" | "rating">;
-      payout_periods: TableDef<
-        PayoutPeriod,
-        "company_id" | "member_id" | "start_date" | "end_date"
-      >;
+      payout_periods: TableDef<PayoutPeriod, "company_id" | "start_date" | "end_date">;
       payout_adjustments: TableDef<PayoutAdjustment, "period_id" | "label" | "amount">;
       payout_lines: TableDef<PayoutLine, "period_id" | "label" | "service_date">;
     };

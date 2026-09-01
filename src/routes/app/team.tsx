@@ -13,12 +13,10 @@ import { useSession } from "@/features/auth/session";
 import { useDirectory } from "@/features/company/directory";
 import { useInviteMember, useUpdateMember } from "@/features/team/api";
 import type { CompanyMember, MemberRole, PayModel } from "@/integrations/supabase/types";
+import { MEMBER_ROLES, PAY_MODELS } from "@/lib/enums";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/team")({ component: TeamPage });
-
-const ROLES: MemberRole[] = ["cleaner", "manager", "owner"];
-const PAY_MODELS: PayModel[] = ["percentage", "daily", "hourly"];
 
 function TeamPage() {
   const { t } = useI18n();
@@ -76,7 +74,7 @@ function TeamPage() {
                   value={role}
                   onChange={(event) => setRole(event.target.value as MemberRole)}
                 >
-                  {ROLES.map((option) => (
+                  {MEMBER_ROLES.map((option) => (
                     <option key={option} value={option}>
                       {t(`role.${option}`)}
                     </option>

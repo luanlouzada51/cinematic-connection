@@ -10,11 +10,10 @@ import { useSession } from "@/features/auth/session";
 import { useUpdateCompany } from "@/features/company/api";
 import { supabase } from "@/integrations/supabase/client";
 import type { Account, PayModel } from "@/integrations/supabase/types";
+import { PAY_MODELS } from "@/lib/enums";
 import { useI18n, type Locale } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/settings")({ component: SettingsPage });
-
-const PAY_MODELS: PayModel[] = ["percentage", "daily", "hourly"];
 
 function SettingsPage() {
   const { t, locale, setLocale } = useI18n();

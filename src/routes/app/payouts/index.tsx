@@ -11,6 +11,7 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { EmptyState, LoadingBlock } from "@/components/ui/states";
 import { useSession } from "@/features/auth/session";
 import { useDirectory } from "@/features/company/directory";
+import { useMarketWorkers } from "@/features/marketplace/api";
 import {
   useCreatePayoutPeriod,
   useMyPayoutPeriods,
@@ -18,11 +19,10 @@ import {
 } from "@/features/payouts/api";
 import type { PayModel, PayoutPeriod } from "@/integrations/supabase/types";
 import { formatDate, toDateOnly } from "@/lib/format";
+import { PAY_MODELS } from "@/lib/enums";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/payouts/")({ component: PayoutsPage });
-
-const PAY_MODELS: PayModel[] = ["percentage", "daily", "hourly"];
 
 function PayoutsPage() {
   const { isManager } = useSession();
@@ -36,10 +36,12 @@ function CompanyPayouts() {
 
   const directory = useDirectory(company?.id);
   const periods = usePayoutPeriods(company?.id);
+  const marketWorkers = useMarketWorkers(company?.id);
   const createPeriod = useCreatePayoutPeriod();
 
   const today = new Date();
-  const [memberId, setMemberId] = useState("");
+  // "member:<id>" para quem é da equipe, "worker:<id>" para quem veio do mercado.
+  const [subject, setSubject] = useState("");
   const [startDate, setStartDate] = useState(() =>
     toDateOnly(startOfWeek(today, { weekStartsOn: 1 })),
   );
@@ -70,12 +72,15 @@ function CompanyPayouts() {
 
   async function handleCreate(event: React.FormEvent) {
     event.preventDefault();
-    if (!company || !memberId) return;
+    if (!company || !subject) return;
+
+    const [kind, id] = subject.split(":");
 
     try {
       const period = await createPeriod.mutateAsync({
         companyId: company.id,
-        memberId,
+        memberId: kind === "member" ? (id ?? null) : null,
+        workerAccountId: kind === "worker" ? (id ?? null) : null,
         startDate,
         endDate,
         payModel,
@@ -101,18 +106,25 @@ function CompanyPayouts() {
         </CardHeader>
         <CardContent>
           <form className="flex flex-col gap-3" onSubmit={handleCreate}>
-            <Field label={t("payout.worker")}>
-              <Select
-                value={memberId}
-                onChange={(event) => setMemberId(event.target.value)}
-                required
-              >
+            <Field label={t("payout.person")}>
+              <Select value={subject} onChange={(event) => setSubject(event.target.value)} required>
                 <option value="">—</option>
-                {directory.data?.members.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.display_name}
-                  </option>
-                ))}
+                <optgroup label={t("payout.teamGroup")}>
+                  {directory.data?.members.map((member) => (
+                    <option key={member.id} value={`member:${member.id}`}>
+                      {member.display_name}
+                    </option>
+                  ))}
+                </optgroup>
+                {(marketWorkers.data?.length ?? 0) > 0 ? (
+                  <optgroup label={t("payout.marketGroup")}>
+                    {marketWorkers.data?.map((worker) => (
+                      <option key={worker.id} value={`worker:${worker.id}`}>
+                        {worker.full_name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
               </Select>
             </Field>
 
@@ -226,7 +238,12 @@ function CompanyPayouts() {
             <PeriodRow
               key={period.id}
               period={period}
-              name={directory.data?.memberById.get(period.member_id)?.display_name ?? "—"}
+              name={
+                (period.member_id
+                  ? directory.data?.memberById.get(period.member_id)?.display_name
+                  : marketWorkers.data?.find((worker) => worker.id === period.worker_account_id)
+                      ?.full_name) ?? "—"
+              }
               locale={locale}
             />
           ))}
@@ -238,8 +255,8 @@ function CompanyPayouts() {
 
 function WorkerPayouts() {
   const { t, locale } = useI18n();
-  const { member } = useSession();
-  const periods = useMyPayoutPeriods(member ? [member.id] : []);
+  const { user, member } = useSession();
+  const periods = useMyPayoutPeriods(member ? [member.id] : [], user?.id);
 
   return (
     <div className="flex flex-col gap-4">

@@ -73,6 +73,17 @@ export function formatClock(value: string, locale: Locale): string {
   });
 }
 
+function minutesOfDay(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return (hours ?? 0) * 60 + (minutes ?? 0);
+}
+
+/** Horas entre dois horários do mesmo dia. Sem fim definido, conta zero. */
+export function hoursBetween(start: string, end: string | null): number {
+  if (!end) return 0;
+  return Math.max(minutesOfDay(end) - minutesOfDay(start), 0) / 60;
+}
+
 export function formatAddress(line?: string | null, city?: string | null): string {
   return [line, city].filter(Boolean).join(", ") || "—";
 }

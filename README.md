@@ -11,8 +11,10 @@ pela mesma conta:
    avaliação dos dois lados no fim.
 
 E, no meio dos dois, o **acerto de pagamento**: escolhe-se o período, o app lista
-as casas feitas, aplica a porcentagem (80/20 ou o que a empresa definir), a
-diária ou a hora, desconta o que precisar e diz **quem paga quem**.
+as casas feitas e os trabalhos pegos no mercado, aplica a porcentagem (80/20 ou o
+que a empresa definir), a diária ou a hora, desconta o que precisar e diz **quem
+paga quem**. O acerto vale tanto para quem é da equipe quanto para quem foi
+contratado por uma vaga, sem vínculo fixo.
 
 ## O que foi corrigido em relação ao app que serviu de referência
 
@@ -23,6 +25,9 @@ diária ou a hora, desconta o que precisar e diz **quem paga quem**.
 - A empresa decide o que aparece: preço para a equipe, preço para o cliente e se
   o chat com cliente existe.
 - O acerto de fim de período deixa de ser planilha.
+- Contrato recorrente não deixa a agenda esvaziar: o app avisa quando as visitas
+  geradas estão acabando e renova a partir da última, herdando a equipe.
+- Serviço pode ser remarcado, e a agenda tem visão de dia e de semana.
 
 ## Papéis
 
@@ -50,11 +55,15 @@ VITE_SUPABASE_PROJECT_ID=
 
 ### Banco
 
-O schema inteiro está em `supabase/migrations/20260828120000_clean_connect_schema.sql`:
-tabelas, RLS por papel, gatilhos (criação de conta, média de avaliação, status da
-vaga), funções de entrada por código, bucket de fotos e realtime.
+Duas migrações em `supabase/migrations`:
 
-**A migração precisa ser aplicada antes do primeiro uso** — sincronizando o
+- `20260828120000_clean_connect_schema.sql` — o schema inteiro: tabelas, RLS por
+  papel, gatilhos (criação de conta, média de avaliação, status da vaga), funções
+  de entrada por código, bucket de fotos e realtime.
+- `20260828170000_payouts_include_gigs.sql` — o que cada vaga rendeu e quem ficou
+  com o dinheiro, e o acerto passando a aceitar quem não é da equipe.
+
+**As migrações precisam ser aplicadas antes do primeiro uso** — sincronizando o
 projeto com o Lovable Cloud ou rodando `supabase db push` com a CLI. Sem isso, as
 telas internas abrem vazias porque as tabelas ainda não existem.
 

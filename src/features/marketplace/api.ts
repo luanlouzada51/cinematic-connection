@@ -6,7 +6,7 @@ import type {
   AvailabilityPeriod,
   CleaningSkill,
   Gig,
-  GigWorkerStatus,
+  GigWorker,
   PayModel,
   ReviewSubject,
   WorkerProfile,
@@ -419,24 +419,66 @@ export function useUpdateGigWorker(gigId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: GigWorkerStatus }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<GigWorker> }) => {
+      // Mudar de estado carimba a hora sozinho: é o registro do vínculo.
       const stamps =
-        status === "in_progress"
+        patch.status === "in_progress"
           ? { started_at: new Date().toISOString() }
-          : status === "completed"
+          : patch.status === "completed"
             ? { ended_at: new Date().toISOString() }
             : {};
 
       const { error } = await supabase
         .from("gig_workers")
-        .update({ status, ...stamps })
+        .update({ ...patch, ...stamps })
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: marketKeys.gigWorkers(gigId) });
       void queryClient.invalidateQueries({ queryKey: marketKeys.gig(gigId) });
+      void queryClient.invalidateQueries({ queryKey: ["payout-gigs"] });
     },
+  });
+}
+
+/**
+ * Quem trabalhou para a empresa vindo do mercado, sem estar na equipe.
+ * É essa lista que permite gerar um acerto para um contratado de fora.
+ */
+export function useMarketWorkers(companyId: string | undefined) {
+  return useQuery({
+    queryKey: ["market-workers", companyId],
+    queryFn: async () => {
+      const { data: gigs, error } = await supabase
+        .from("gigs")
+        .select("*")
+        .eq("company_id", companyId!);
+      if (error) throw error;
+      if (gigs.length === 0) return [];
+
+      const { data: bonds, error: bondsError } = await supabase
+        .from("gig_workers")
+        .select("*")
+        .in(
+          "gig_id",
+          gigs.map((gig) => gig.id),
+        )
+        .eq("status", "completed");
+      if (bondsError) throw bondsError;
+
+      const workerIds = [...new Set(bonds.map((bond) => bond.worker_id))];
+      if (workerIds.length === 0) return [];
+
+      const { data: accounts, error: accountsError } = await supabase
+        .from("accounts")
+        .select("id, full_name")
+        .in("id", workerIds);
+      if (accountsError) throw accountsError;
+
+      return accounts;
+    },
+    enabled: Boolean(companyId),
   });
 }
 

@@ -7,7 +7,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/field";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { EmptyState, LoadingBlock } from "@/components/ui/states";
 import { useSession } from "@/features/auth/session";
 import { useCompany } from "@/features/company/api";
@@ -26,7 +26,9 @@ import {
 } from "@/features/marketplace/api";
 import { PayLabel, SkillTags } from "@/features/marketplace/components";
 import { ReviewDialog } from "@/features/marketplace/ReviewDialog";
+import type { PaymentCollector } from "@/integrations/supabase/types";
 import { formatDate, formatTime } from "@/lib/format";
+import { COLLECTORS } from "@/lib/enums";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/market/gigs/$gigId")({ component: GigDetail });
@@ -133,7 +135,7 @@ function GigDetail() {
                     <Button
                       size="sm"
                       onClick={() =>
-                        updateGigWorker.mutate({ id: myBond.id, status: "in_progress" })
+                        updateGigWorker.mutate({ id: myBond.id, patch: { status: "in_progress" } })
                       }
                     >
                       {t("gig.start")}
@@ -143,7 +145,9 @@ function GigDetail() {
                     <Button
                       size="sm"
                       variant="success"
-                      onClick={() => updateGigWorker.mutate({ id: myBond.id, status: "completed" })}
+                      onClick={() =>
+                        updateGigWorker.mutate({ id: myBond.id, patch: { status: "completed" } })
+                      }
                     >
                       {t("gig.finish")}
                     </Button>
@@ -162,6 +166,28 @@ function GigDetail() {
                     />
                   ) : null}
                 </div>
+
+                {/* O profissional marca se recebeu na casa ou se o dinheiro
+                    ficou com a empresa — é metade do acerto do período. */}
+                {myBond.status === "completed" || myBond.status === "in_progress" ? (
+                  <Field label={t("job.collector")}>
+                    <Select
+                      value={myBond.collected_by}
+                      onChange={(event) =>
+                        updateGigWorker.mutate({
+                          id: myBond.id,
+                          patch: { collected_by: event.target.value as PaymentCollector },
+                        })
+                      }
+                    >
+                      {COLLECTORS.map((collector) => (
+                        <option key={collector} value={collector}>
+                          {t(`collector.${collector}`)}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                ) : null}
               </>
             ) : myApplication ? (
               <div className="flex items-center justify-between">
@@ -291,7 +317,10 @@ function GigDetail() {
                             size="sm"
                             variant="outline"
                             onClick={() =>
-                              updateGigWorker.mutate({ id: bond.id, status: "in_progress" })
+                              updateGigWorker.mutate({
+                                id: bond.id,
+                                patch: { status: "in_progress" },
+                              })
                             }
                           >
                             {t("gig.start")}
@@ -302,7 +331,10 @@ function GigDetail() {
                             size="sm"
                             variant="success"
                             onClick={() =>
-                              updateGigWorker.mutate({ id: bond.id, status: "completed" })
+                              updateGigWorker.mutate({
+                                id: bond.id,
+                                patch: { status: "completed" },
+                              })
                             }
                           >
                             {t("gig.finish")}
@@ -313,7 +345,7 @@ function GigDetail() {
                             size="sm"
                             variant="ghost"
                             onClick={() =>
-                              updateGigWorker.mutate({ id: bond.id, status: "no_show" })
+                              updateGigWorker.mutate({ id: bond.id, patch: { status: "no_show" } })
                             }
                           >
                             {t("gig.markNoShow")}
@@ -336,6 +368,53 @@ function GigDetail() {
                           />
                         ) : null}
                       </div>
+
+                      {/* O que o dia rendeu e quem ficou com o dinheiro: é daqui
+                          que o acerto do período tira a conta da vaga. */}
+                      {bond.status === "completed" || bond.status === "in_progress" ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Field
+                            label={t("gig.houseRevenue")}
+                            hint={
+                              bond.agreed_pay_model === "percentage"
+                                ? t("gig.houseRevenueHelp")
+                                : undefined
+                            }
+                          >
+                            <Input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              defaultValue={bond.house_revenue}
+                              onBlur={(event) =>
+                                updateGigWorker.mutate({
+                                  id: bond.id,
+                                  patch: { house_revenue: Number(event.target.value || 0) },
+                                })
+                              }
+                            />
+                          </Field>
+                          <Field label={t("job.collector")}>
+                            <Select
+                              value={bond.collected_by}
+                              onChange={(event) =>
+                                updateGigWorker.mutate({
+                                  id: bond.id,
+                                  patch: {
+                                    collected_by: event.target.value as PaymentCollector,
+                                  },
+                                })
+                              }
+                            >
+                              {COLLECTORS.map((collector) => (
+                                <option key={collector} value={collector}>
+                                  {t(`collector.${collector}`)}
+                                </option>
+                              ))}
+                            </Select>
+                          </Field>
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })

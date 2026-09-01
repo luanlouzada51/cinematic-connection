@@ -9,7 +9,6 @@ import { EmptyState } from "@/components/ui/states";
 import { useSession } from "@/features/auth/session";
 import { useDirectory } from "@/features/company/directory";
 import { useCreateService } from "@/features/schedule/api";
-import { SERVICE_TYPES } from "@/features/schedule/constants";
 import {
   defaultOccurrenceCount,
   occurrenceDates,
@@ -17,6 +16,7 @@ import {
 } from "@/features/schedule/recurrence";
 import type { Recurrence, ServiceType } from "@/integrations/supabase/types";
 import { toDateOnly } from "@/lib/format";
+import { SERVICE_TYPES } from "@/lib/enums";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/schedule/new")({ component: NewServicePage });

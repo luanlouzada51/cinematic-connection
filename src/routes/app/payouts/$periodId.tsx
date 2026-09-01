@@ -11,16 +11,23 @@ import { SwitchRow } from "@/components/ui/switch";
 import { EmptyState, LoadingBlock } from "@/components/ui/states";
 import { useSession } from "@/features/auth/session";
 import { useDirectory } from "@/features/company/directory";
+import { useMarketWorkers } from "@/features/marketplace/api";
 import {
   useAddAdjustment,
   useAdjustments,
   useClosePeriod,
   usePayoutPeriod,
+  usePeriodGigs,
   usePeriodJobs,
   useUpdatePeriod,
 } from "@/features/payouts/api";
-import { settlePeriod, type SettlementJob } from "@/features/payouts/settlement";
-import { formatDate, formatMoney } from "@/lib/format";
+import {
+  gigEarning,
+  settlePeriod,
+  type SettlementGig,
+  type SettlementJob,
+} from "@/features/payouts/settlement";
+import { formatDate, formatMoney, hoursBetween } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/payouts/$periodId")({ component: PayoutDetail });
@@ -34,6 +41,15 @@ function PayoutDetail() {
   const jobs = usePeriodJobs(period.data);
   const adjustments = useAdjustments(periodId);
   const directory = useDirectory(company?.id);
+  const marketWorkers = useMarketWorkers(company?.id);
+
+  // O acerto é de alguém da equipe ou de alguém contratado pelo mercado; as
+  // vagas são buscadas pela conta, que é o que os dois casos têm em comum.
+  const member = period.data?.member_id
+    ? directory.data?.memberById.get(period.data.member_id)
+    : undefined;
+  const accountId = period.data?.worker_account_id ?? member?.account_id ?? undefined;
+  const gigs = usePeriodGigs(period.data, accountId);
   const addAdjustment = useAddAdjustment(periodId);
   const updatePeriod = useUpdatePeriod(periodId);
   const closePeriod = useClosePeriod(periodId);
@@ -58,15 +74,28 @@ function PayoutDetail() {
   // para todo mundo, inclusive quando o profissional esquece de bater ponto.
   const hoursWorked = useMemo(
     () =>
-      (jobs.data ?? []).reduce((total, job) => {
-        if (!job.end_time) return total;
-        const [startHour, startMinute] = job.start_time.split(":").map(Number);
-        const [endHour, endMinute] = job.end_time.split(":").map(Number);
-        const minutes =
-          (endHour ?? 0) * 60 + (endMinute ?? 0) - ((startHour ?? 0) * 60 + (startMinute ?? 0));
-        return total + Math.max(minutes, 0) / 60;
-      }, 0),
+      (jobs.data ?? []).reduce(
+        (total, job) => total + hoursBetween(job.start_time, job.end_time),
+        0,
+      ),
     [jobs.data],
+  );
+
+  const settlementGigs = useMemo<SettlementGig[]>(
+    () =>
+      (gigs.data ?? []).map(({ gig, bond }) => ({
+        id: gig.id,
+        label: gig.title,
+        date: gig.date,
+        model: bond.agreed_pay_model,
+        dailyRate: bond.agreed_daily_rate,
+        hourlyRate: bond.agreed_hourly_rate,
+        percentage: bond.agreed_percentage,
+        hours: hoursBetween(gig.start_time, gig.end_time),
+        revenue: bond.house_revenue,
+        collector: bond.collected_by,
+      })),
+    [gigs.data],
   );
 
   const settlement = useMemo(() => {
@@ -78,18 +107,22 @@ function PayoutDetail() {
       hourlyRate: period.data.hourly_rate,
       hoursWorked,
       jobs: settlementJobs,
+      gigs: settlementGigs,
       adjustments: (adjustments.data ?? []).map((item) => ({
         label: item.label,
         amount: item.amount,
       })),
       includeUnpaidInSplit: includeUnpaid,
     });
-  }, [period.data, settlementJobs, adjustments.data, includeUnpaid, hoursWorked]);
+  }, [period.data, settlementJobs, settlementGigs, adjustments.data, includeUnpaid, hoursWorked]);
 
   if (period.isLoading || jobs.isLoading) return <LoadingBlock />;
   if (!period.data || !settlement) return <EmptyState title={t("payout.empty")} />;
 
-  const memberName = directory.data?.memberById.get(period.data.member_id)?.display_name ?? "";
+  const personName =
+    member?.display_name ??
+    marketWorkers.data?.find((worker) => worker.id === period.data?.worker_account_id)?.full_name ??
+    "";
   const settled = period.data.status === "settled";
 
   return (
@@ -97,7 +130,7 @@ function PayoutDetail() {
       <header>
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h1 className="text-xl font-semibold">{memberName}</h1>
+            <h1 className="text-xl font-semibold">{personName}</h1>
             <p className="text-sm text-muted-foreground">
               {formatDate(period.data.start_date, locale)} –{" "}
               {formatDate(period.data.end_date, locale)}
@@ -126,6 +159,32 @@ function PayoutDetail() {
                   </p>
                 </div>
                 <span className="shrink-0 font-semibold">{formatMoney(job.price, locale)}</span>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("payout.gigs")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          {settlementGigs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("payout.noGigs")}</p>
+          ) : (
+            settlementGigs.map((gig) => (
+              <div key={gig.id} className="flex items-center justify-between gap-2 text-sm">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{gig.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(gig.date, locale)} · {t(`payModel.${gig.model}`)} ·{" "}
+                    {t(`collector.${gig.collector}`)}
+                  </p>
+                </div>
+                <span className="shrink-0 font-semibold">
+                  {formatMoney(gigEarning(gig), locale)}
+                </span>
               </div>
             ))
           )}
@@ -161,6 +220,13 @@ function PayoutDetail() {
           />
           {settlement.unpaid > 0 ? (
             <Row label={t("payout.pending")} value={formatMoney(settlement.unpaid, locale)} muted />
+          ) : null}
+          {settlement.gigsBase > 0 ? (
+            <Row
+              label={t("payout.gigsTotal")}
+              value={formatMoney(settlement.gigsBase, locale)}
+              muted
+            />
           ) : null}
           {period.data.pay_model === "daily" ? (
             <Row label={t("payout.daysWorked")} value={String(settlement.daysWorked)} muted />
@@ -263,8 +329,8 @@ function PayoutDetail() {
             onClick={async () => {
               await closePeriod.mutateAsync({
                 jobs: settlementJobs,
+                gigs: settlementGigs,
                 settlement,
-                labels: new Map(settlementJobs.map((job) => [job.id, job.label])),
               });
               toast.success(t("payout.settled"));
             }}

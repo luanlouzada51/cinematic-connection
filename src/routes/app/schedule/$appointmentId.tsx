@@ -23,7 +23,6 @@ import {
   useUpdateAppointment,
 } from "@/features/schedule/api";
 import { StatusBadge } from "@/features/schedule/components";
-import { SERVICE_TYPES } from "@/features/schedule/constants";
 import { Timeline } from "@/features/schedule/Timeline";
 import { publicPhotoUrl, useAppointmentPhotos, useUploadPhoto } from "@/features/schedule/photos";
 import type {
@@ -32,6 +31,7 @@ import type {
   ServiceType,
 } from "@/integrations/supabase/types";
 import { formatDate, formatMoney, formatTime } from "@/lib/format";
+import { COLLECTORS, SERVICE_TYPES } from "@/lib/enums";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/schedule/$appointmentId")({ component: JobDetail });
@@ -42,8 +42,6 @@ const ACTIONS: Array<{ kind: AppointmentEventKind; label: TranslationKey }> = [
   { kind: "clock_out", label: "action.clockOut" },
   { kind: "completed", label: "action.complete" },
 ];
-
-const COLLECTORS: PaymentCollector[] = ["unpaid", "company", "worker"];
 
 function JobDetail() {
   const { appointmentId } = Route.useParams();

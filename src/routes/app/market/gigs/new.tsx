@@ -10,11 +10,10 @@ import { useCreateGig } from "@/features/marketplace/api";
 import { SkillPicker } from "@/features/marketplace/components";
 import type { CleaningSkill, PayModel } from "@/integrations/supabase/types";
 import { toDateOnly } from "@/lib/format";
+import { PAY_MODELS } from "@/lib/enums";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/market/gigs/new")({ component: NewGigPage });
-
-const PAY_MODELS: PayModel[] = ["daily", "hourly", "percentage"];
 
 function NewGigPage() {
   const { t } = useI18n();

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { settlePeriod, type SettlementJob } from "@/features/payouts/settlement";
+import {
+  settlePeriod,
+  type SettlementGig,
+  type SettlementJob,
+} from "@/features/payouts/settlement";
 
 function job(
   price: number,
@@ -8,6 +12,18 @@ function job(
   date = "2026-08-24",
 ): SettlementJob {
   return { id: `${date}-${price}-${collector}`, label: "Casa", date, price, collector };
+}
+
+function gig(overrides: Partial<SettlementGig> = {}): SettlementGig {
+  return {
+    id: "gig-1",
+    label: "Deep clean sábado",
+    date: "2026-08-29",
+    model: "daily",
+    revenue: 0,
+    collector: "unpaid",
+    ...overrides,
+  };
 }
 
 describe("settlePeriod", () => {
@@ -135,6 +151,81 @@ describe("settlePeriod", () => {
 
     expect(result.workerDue).toBe(33.36);
     expect(result.companyDue).toBe(66.74);
+  });
+
+  it("soma a diária combinada em uma vaga do mercado", () => {
+    const result = settlePeriod({
+      model: "percentage",
+      workerPercentage: 80,
+      jobs: [job(1000, "company", "2026-08-24")],
+      gigs: [gig({ model: "daily", dailyRate: 180 })],
+    });
+
+    // 800 das casas + 180 da diária da vaga.
+    expect(result.gigsBase).toBe(180);
+    expect(result.workerDue).toBe(980);
+    // A vaga por diária não declara faturamento, então o bolo é só o das casas.
+    expect(result.gross).toBe(1000);
+    expect(result.companyDue).toBe(20);
+  });
+
+  it("aplica a porcentagem combinada na vaga sobre o que ela rendeu", () => {
+    const result = settlePeriod({
+      model: "percentage",
+      workerPercentage: 80,
+      jobs: [],
+      gigs: [gig({ model: "percentage", percentage: 70, revenue: 600, collector: "worker" })],
+    });
+
+    expect(result.gross).toBe(600);
+    expect(result.gigsRevenue).toBe(600);
+    expect(result.workerDue).toBe(420);
+    expect(result.companyDue).toBe(180);
+    // Ele ficou com os 600 na mão e deveria ficar com 420.
+    expect(result.balance).toBe(-180);
+    expect(result.direction).toBe("worker_pays_company");
+  });
+
+  it("paga a vaga por hora pelas horas do trabalho", () => {
+    const result = settlePeriod({
+      model: "percentage",
+      workerPercentage: 80,
+      jobs: [],
+      gigs: [gig({ model: "hourly", hourlyRate: 25, hours: 6.5 })],
+    });
+
+    expect(result.workerDue).toBe(162.5);
+    expect(result.direction).toBe("company_pays_worker");
+  });
+
+  it("mistura casas da agenda e vagas na mesma conta", () => {
+    const result = settlePeriod({
+      model: "percentage",
+      workerPercentage: 80,
+      jobs: [job(1000, "worker", "2026-08-24")],
+      gigs: [gig({ model: "percentage", percentage: 80, revenue: 500, collector: "company" })],
+    });
+
+    expect(result.gross).toBe(1500);
+    // 800 das casas + 400 da vaga.
+    expect(result.workerDue).toBe(1200);
+    expect(result.collectedByWorker).toBe(1000);
+    expect(result.collectedByCompany).toBe(500);
+    expect(result.balance).toBe(200);
+    expect(result.direction).toBe("company_pays_worker");
+  });
+
+  it("mantém a casa não paga fora da conta mesmo com vaga no período", () => {
+    const result = settlePeriod({
+      model: "percentage",
+      workerPercentage: 80,
+      jobs: [job(400, "unpaid", "2026-08-24")],
+      gigs: [gig({ model: "daily", dailyRate: 150 })],
+    });
+
+    expect(result.unpaid).toBe(400);
+    expect(result.splitBase).toBe(0);
+    expect(result.workerDue).toBe(150);
   });
 
   it("não quebra com período sem nenhuma casa", () => {
