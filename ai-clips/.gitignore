@@ -1,0 +1,8 @@
+trabalho/
+saida/
+sfx/
+feitos.json
+token.json
+client_secret*.json
+log.txt
+__pycache__/
