@@ -1,7 +1,12 @@
 # Cortes de IA
 
-Rotina diária: acha os 10 vídeos de IA mais vistos → baixa → transcreve → escolhe o melhor trecho de ~1 min →
-monta o Short vertical (gancho + corte, legenda, som de suspense/humor) → posta no YouTube.
+Rotina diária: acha os 10 podcasts/entrevistas sobre IA mais vistos da semana → baixa só o áudio → transcreve →
+escolhe o melhor trecho de ~1 min falando de IA → baixa só esse pedaço do vídeo → monta o Short vertical
+(gancho + corte, legenda, som de suspense/humor) → posta no YouTube.
+
+Busca: episódios de 15 min a 4 h, com IA no título (IA, AI, inteligência artificial, ChatGPT, OpenAI…), pulando
+canais de cortes (pega sempre a fonte original). Em episódio longo, transcreve só os 3 trechos mais repetidos pelos
+espectadores, então um podcast de 3 h não leva 3 h pra processar.
 
 > **Rode no seu computador.** O YouTube bloqueia download a partir de servidores (pede login de "não sou robô").
 > No seu PC funciona normal.
@@ -41,7 +46,7 @@ Agendar todo dia às 9h:
 
 Sons: na 1ª execução são gerados sons simples em `sfx/`. Pra sons melhores, coloque seus arquivos como
 `sfx/riser.mp3` (suspense crescente), `sfx/boom.mp3` (impacto) e `sfx/boing.mp3` (humor).
-Os temas de busca ficam em `BUSCAS` no topo de `cortes.py`. `feitos.json` guarda o que já foi cortado.
+As buscas ficam em `BUSCAS` e o filtro de tema em `SOBRE_IA`, no topo de `cortes.py`. `feitos.json` guarda o que já foi cortado.
 
 ## Atenção: direitos autorais
 

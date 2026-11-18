@@ -24,10 +24,13 @@ AQUI = Path(__file__).resolve().parent
 TRAB, SAIDA, SFX = AQUI / "trabalho", AQUI / "saida", AQUI / "sfx"
 HISTORICO = AQUI / "feitos.json"
 
-BUSCAS = ["inteligência artificial", "artificial intelligence", "ChatGPT", "OpenAI"]
+BUSCAS = ["podcast inteligência artificial", "podcast sobre IA", "AI podcast", "AI interview podcast"]
 FILTRO = os.environ.get("FILTRO", "CAMSAggD")  # mais vistos da semana; "CAMSAggC" = só de hoje
 TOP_N = int(os.environ.get("TOP_N", 10))
-DURACAO_FONTE = (180, 2400)  # só vídeos de 3 a 40 min (material pra cortar)
+DURACAO_FONTE = (900, 4 * 3600)  # episódios de 15 min a 4 h
+# o título tem que falar de IA (AI/IA só em maiúscula, pra não pegar "eu ia")
+SOBRE_IA = re.compile(r"\b(AI|IA)\b|(?i:intelig[êe]ncia artificial|artificial intelligence|chatgpt|openai|"
+                      r"anthropic|gemini|nvidia|\bllms?\b|\bgpt|\brob[ôo]s?\b)")
 TOTAL = 60  # duração final: gancho + corte
 IDIOMA = os.environ.get("IDIOMA", "pt")  # traduz a legenda pra esse idioma (precisa da IA)
 PRIVACIDADE = os.environ.get("PRIVACIDADE", "public")
@@ -91,17 +94,31 @@ def buscar(feitos):
         for q in BUSCAS:
             url = f"https://www.youtube.com/results?search_query={quote(q)}&sp={FILTRO}"
             for v in ydl.extract_info(url, download=False).get("entries") or []:
-                if v.get("id") not in feitos and DURACAO_FONTE[0] <= (v.get("duration") or 0) <= DURACAO_FONTE[1]:
+                if (v.get("id") not in feitos and DURACAO_FONTE[0] <= (v.get("duration") or 0) <= DURACAO_FONTE[1]
+                        and SOBRE_IA.search(v.get("title") or "")
+                        and "corte" not in (v.get("channel") or "").lower()):  # fonte original, não outro canal de cortes
                     achados[v["id"]] = v
     return sorted(achados.values(), key=lambda v: v.get("view_count") or 0, reverse=True)[:TOP_N]
 
 
-def baixar(vid):
+def baixar_audio(vid):
+    """Só o áudio (podcast de 2 h ~ 100 MB) pra transcrever."""
     import yt_dlp
-    with yt_dlp.YoutubeDL(opts_ytdlp(format="bv*[height<=1080]+ba/b", merge_output_format="mp4",
-                                     outtmpl=str(TRAB / "%(id)s.%(ext)s"))) as ydl:
+    with yt_dlp.YoutubeDL(opts_ytdlp(format="ba/b", outtmpl=str(TRAB / "%(id)s.audio.%(ext)s"))) as ydl:
         info = ydl.extract_info(f"https://www.youtube.com/watch?v={vid}")
-    return TRAB / f"{vid}.mp4", info
+        return Path(ydl.prepare_filename(info)), info
+
+
+def baixar_trecho(vid, s, fim):
+    """Só o pedaço do corte (1 s de folga), não o episódio inteiro. Devolve (arquivo, segundo onde começa)."""
+    a = max(0.0, s - 1)
+    import yt_dlp
+    from yt_dlp.utils import download_range_func
+    with yt_dlp.YoutubeDL(opts_ytdlp(format="bv*[height<=1080]+ba/b", merge_output_format="mp4",
+                                     download_ranges=download_range_func(None, [(a, fim + 1)]), force_keyframes_at_cuts=True,
+                                     outtmpl=str(TRAB / "%(id)s.trecho.%(ext)s"))) as ydl:
+        ydl.download([f"https://www.youtube.com/watch?v={vid}"])
+    return TRAB / f"{vid}.trecho.mp4", a
 
 
 # ---------- 2. ler (transcrever) e escolher o corte ----------
@@ -112,13 +129,32 @@ def whisper():
     return WhisperModel(WHISPER, device="cpu", compute_type="int8")
 
 
-def transcrever(video):
+def regioes(info, raio=120, k=3):
+    """Episódio longo com mapa de 'mais repetidos': transcreve só os k picos (±raio s), não as 3 h."""
+    dur = info["duration"]
+    if not info.get("heatmap") or dur <= 20 * 60:
+        return [(0, dur)]
+    out = []
+    for h in sorted(info["heatmap"], key=lambda h: -h["value"]):
+        c = (h["start_time"] + h["end_time"]) / 2
+        if c > 60 and all(abs(c - (a + b) / 2) > 2 * raio for a, b in out):  # pula a abertura
+            out.append((max(0, c - raio), min(dur, c + raio)))
+        if len(out) == k:
+            break
+    return sorted(out) or [(0, dur)]
+
+
+def transcrever(audio, trechos):
     import numpy as np  # áudio decodificado pelo ffmpeg: o decoder do faster-whisper quebra com PyAV novo
-    pcm = subprocess.check_output(["ffmpeg", "-v", "error", "-i", str(video), "-ac", "1", "-ar", "16000", "-f", "f32le", "-"])
-    segs, info = whisper().transcribe(np.frombuffer(pcm, np.float32), word_timestamps=True, vad_filter=True)
-    segs = [{"start": s.start, "end": s.end, "text": s.text.strip(),
-             "words": [(w.start, w.end, w.word.strip()) for w in s.words or []]} for s in segs]
-    return segs, info.language
+    segs, lang = [], None
+    for a, b in trechos:
+        pcm = subprocess.check_output(["ffmpeg", "-v", "error", "-ss", f"{a:.2f}", "-t", f"{b - a:.2f}", "-i", str(audio),
+                                       "-ac", "1", "-ar", "16000", "-f", "f32le", "-"])
+        ss, info = whisper().transcribe(np.frombuffer(pcm, np.float32), word_timestamps=True, vad_filter=True)
+        segs += [{"start": s.start + a, "end": s.end + a, "text": s.text.strip(),
+                  "words": [(w.start + a, w.end + a, w.word.strip()) for w in s.words or []]} for s in ss]
+        lang = lang or info.language
+    return segs, lang
 
 
 def melhor_janela(nota, n):
@@ -139,6 +175,8 @@ def escolher_sem_ia(segs, info):
         for s in segs:
             for w in s["words"]:
                 nota[min(int(w[0]), len(nota) - 1)] += 1
+    falado = {t for s in segs for t in range(int(s["start"]), int(s["end"]) + 1)}
+    nota = [n if t in falado else 0 for t, n in enumerate(nota)]  # só onde tem fala transcrita
     hl = 4
     s = melhor_janela(nota, TOTAL - hl)
     h = s + 10 + melhor_janela(nota[s + 10: s + TOTAL - hl], hl)
@@ -161,14 +199,14 @@ def escolher_com_ia(segs, info, traduzir):
             f"{h['start_time']:.0f}-{h['end_time']:.0f}" for h in top)
     legenda = ("a fala do trecho (start..end) traduzida para português do Brasil, em linhas de até 6 palavras, "
                "com start/end alinhados aos tempos da transcrição" if traduzir else "lista vazia []")
-    prompt = f"""Você edita cortes virais para um canal brasileiro de cortes sobre IA (YouTube Shorts).
-Vídeo: "{info['title']}" ({info['duration']:.0f} s). {picos}
+    prompt = f"""Você edita cortes virais de podcasts para um canal brasileiro de cortes sobre IA (YouTube Shorts).
+Episódio: "{info['title']}" ({info['duration']:.0f} s). {picos}
 
 Transcrição ([início-fim] texto, em segundos do vídeo original):
 {transcricao}
 
 Responda com:
-- start/end: o melhor trecho contínuo de {TOTAL - 8} a {TOTAL - 3} s. O momento mais forte, que se entende sozinho, começando e terminando em fim de frase.
+- start/end: o melhor trecho contínuo de {TOTAL - 8} a {TOTAL - 3} s em que se fala de IA. O momento mais forte, que se entende sozinho, começando e terminando em fim de frase.
 - hook_start/hook_end: o gancho, 3 a 6 s DE DENTRO desse trecho, depois dos primeiros 10 s dele: a frase mais chocante ou engraçada. Ele toca antes do corte.
 - clima: "suspense" ou "humor", o tom do gancho.
 - efeitos: até 4 momentos (t em segundos do vídeo original, dentro do trecho) que pedem efeito sonoro, cada um com tipo suspense ou humor.
@@ -257,7 +295,8 @@ def som(nome):
     return f
 
 
-def montar(video, nome, segs, e, s, fim, hs, he):
+def montar(video, offset, nome, segs, e, s, fim, hs, he):
+    """offset = segundo do episódio onde o arquivo `video` começa."""
     hl = he - hs
     trechos = [(hs, he), (s, fim)]
     if e.legendas:
@@ -273,8 +312,8 @@ def montar(video, nome, segs, e, s, fim, hs, he):
     for c in e.efeitos:  # [-1:] = só a ocorrência no corte, não repete no gancho
         sons += [("boom" if c.tipo == "suspense" else "boing", a) for a, _ in para_saida(c.t, c.t, trechos)[-1:]]
 
-    entradas = ["-ss", f"{hs:.2f}", "-t", f"{hl:.2f}", "-i", str(video),
-                "-ss", f"{s:.2f}", "-t", f"{fim - s:.2f}", "-i", str(video)]
+    entradas = ["-ss", f"{hs - offset:.2f}", "-t", f"{hl:.2f}", "-i", str(video),
+                "-ss", f"{s - offset:.2f}", "-t", f"{fim - s:.2f}", "-i", str(video)]
     fc = ["[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[cv][ca]",
           "[cv]split[b][f]",
           "[b]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=25[bg]",
@@ -293,14 +332,15 @@ def montar(video, nome, segs, e, s, fim, hs, he):
     return saida
 
 
-def processar(video, info):
+def processar(audio, info, pegar_video):
+    """pegar_video(s, fim) -> (arquivo de vídeo que cobre [s,fim], segundo onde ele começa)."""
     nome = re.sub(r"[^\w-]", "_", info["id"])
-    segs, lang = transcrever(video)
+    segs, lang = transcrever(audio, regioes(info))
     e = escolher(segs, lang, info)
     palavras = [w for sg in segs for w in sg["words"]]
     s, fim, hs, he = ajustar(e, palavras, info["duration"])
     print(f"{nome}: corte {s:.1f}-{fim:.1f}s, gancho {hs:.1f}-{he:.1f}s, {e.clima} | {e.titulo}")
-    return montar(video, nome, segs, e, s, fim, hs, he), e
+    return montar(*pegar_video(s, fim), nome, segs, e, s, fim, hs, he), e
 
 
 # ---------- 4. postar ----------
@@ -347,19 +387,20 @@ def main():
         meta = p.with_suffix(".info.json")
         info = json.loads(meta.read_text()) if meta.exists() else {"id": p.stem, "title": p.stem}
         info["duration"] = info.get("duration") or duracao(p)
-        print(processar(p, info)[0])
+        print(processar(p, info, lambda s, fim: (p, 0))[0])
         return
 
     feitos = set(json.loads(HISTORICO.read_text())) if HISTORICO.exists() else set()
     for v in buscar(feitos):
         try:
-            video, info = baixar(v["id"])
-            arquivo, e = processar(video, info)
+            audio, info = baixar_audio(v["id"])
+            arquivo, e = processar(audio, info, lambda s, fim: baixar_trecho(v["id"], s, fim))
             if not a.no_upload:
                 print("  postado:", postar(arquivo, e, info))
             feitos.add(v["id"])
             HISTORICO.write_text(json.dumps(sorted(feitos)))
-            video.unlink(missing_ok=True)
+            for f in TRAB.glob(f"{v['id']}.*"):  # libera espaço
+                f.unlink()
         except Exception as err:  # um vídeo ruim não derruba o lote
             print(f"  falhou {v['id']}: {err}", file=sys.stderr)
 
