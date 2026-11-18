@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Cortes de IA: acha os vídeos de IA mais vistos, gera cortes verticais de ~1 min
-(gancho + corte, legenda, efeito sonoro de suspense/humor) e posta no YouTube.
+"""Cortes de IA: acha os podcasts sobre IA mais vistos, gera cortes verticais de até 1 min
+(gancho + corte, legenda, efeito sonoro de suspense/humor) e agenda no YouTube.
 
   python cortes.py               # rotina diária completa
   python cortes.py --no-upload   # só gera os cortes em saida/
   python cortes.py --video X.mp4 # edita um vídeo local (teste)
+  python cortes.py --autorizar   # conecta o canal (1ª vez)
 """
 import argparse
 import itertools
@@ -13,10 +14,12 @@ import os
 import re
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 from functools import cache
 from pathlib import Path
 from typing import Literal
 from urllib.parse import quote
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel
 
@@ -26,7 +29,9 @@ HISTORICO = AQUI / "feitos.json"
 
 BUSCAS = ["podcast inteligência artificial", "podcast sobre IA", "AI podcast", "AI interview podcast"]
 FILTRO = os.environ.get("FILTRO", "CAMSAggD")  # mais vistos da semana; "CAMSAggC" = só de hoje
-TOP_N = int(os.environ.get("TOP_N", 3))
+# 1 corte por horário; roda de madrugada e o YouTube publica cada um sozinho na hora marcada
+HORARIOS = os.environ.get("HORARIOS", "07:00,12:00,18:00").split(",")
+FUSO = ZoneInfo(os.environ.get("FUSO", "America/New_York"))  # Ohio
 DURACAO_FONTE = (900, 4 * 3600)  # episódios de 15 min a 4 h
 # o título tem que falar de IA (AI/IA só em maiúscula, pra não pegar "eu ia")
 SOBRE_IA = re.compile(r"\b(AI|IA)\b|(?i:intelig[êe]ncia artificial|artificial intelligence|chatgpt|openai|"
@@ -100,7 +105,7 @@ def buscar(feitos):
                         and SOBRE_IA.search(v.get("title") or "")
                         and "corte" not in (v.get("channel") or "").lower()):  # fonte original, não outro canal de cortes
                     achados[v["id"]] = v
-    return sorted(achados.values(), key=lambda v: v.get("view_count") or 0, reverse=True)[:TOP_N]
+    return sorted(achados.values(), key=lambda v: v.get("view_count") or 0, reverse=True)[:3 * len(HORARIOS)]  # sobra reserva se algum falhar
 
 
 def baixar_audio(vid):
@@ -347,12 +352,19 @@ def processar(audio, info, pegar_video):
 
 # ---------- 4. postar ----------
 
-def postar(arquivo, e, info):
+def horario(hhmm, agora=None):
+    """Próximo hh:mm de hoje no fuso do canal; None se já passou (aí posta na hora)."""
+    agora = agora or datetime.now(FUSO)
+    h, m = map(int, hhmm.split(":"))
+    quando = agora.replace(hour=h, minute=m, second=0, microsecond=0)
+    return quando if quando > agora + timedelta(minutes=15) else None
+
+
+def youtube():
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
     from google_auth_oauthlib.flow import InstalledAppFlow
     from googleapiclient.discovery import build
-    from googleapiclient.http import MediaFileUpload
     escopo = ["https://www.googleapis.com/auth/youtube.upload"]
     token = AQUI / "token.json"
     cred = Credentials.from_authorized_user_file(str(token), escopo) if token.exists() else None
@@ -362,13 +374,21 @@ def postar(arquivo, e, info):
         else:  # 1ª vez: abre o navegador pra você autorizar o canal
             cred = InstalledAppFlow.from_client_secrets_file(str(AQUI / "client_secret.json"), escopo).run_local_server(port=0)
         token.write_text(cred.to_json())
+    return build("youtube", "v3", credentials=cred)
+
+
+def postar(arquivo, e, info, quando=None):
+    from googleapiclient.http import MediaFileUpload
     corpo = {
         "snippet": {"title": e.titulo[:100], "categoryId": "28",
                     "description": f"{e.descricao}\n\nFonte: {info['title']} - https://youtu.be/{info['id']}",
                     "tags": ["IA", "inteligência artificial", "cortes", "shorts"]},
         "status": {"privacyStatus": PRIVACIDADE, "selfDeclaredMadeForKids": False},
     }
-    req = build("youtube", "v3", credentials=cred).videos().insert(
+    if quando and PRIVACIDADE == "public":  # agendado: fica privado e o YouTube publica sozinho na hora
+        corpo["status"].update(privacyStatus="private",
+                               publishAt=quando.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    req = youtube().videos().insert(
         part="snippet,status", body=corpo, media_body=MediaFileUpload(str(arquivo), resumable=True))
     resp = None
     while resp is None:
@@ -380,7 +400,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--no-upload", action="store_true", help="só gera os cortes, não posta")
     ap.add_argument("--video", help="edita um arquivo local em vez de buscar no YouTube")
+    ap.add_argument("--autorizar", action="store_true", help="só conecta o canal do YouTube (1ª vez)")
     a = ap.parse_args()
+    for s in (sys.stdout, sys.stderr):  # log do Windows não quebra com emoji no título
+        s.reconfigure(errors="replace")
+    if a.autorizar:
+        youtube()
+        print("Canal autorizado.")
+        return
     for d in (TRAB, SAIDA, SFX):
         d.mkdir(exist_ok=True)
 
@@ -393,12 +420,17 @@ def main():
         return
 
     feitos = set(json.loads(HISTORICO.read_text())) if HISTORICO.exists() else set()
+    prontos = 0
     for v in buscar(feitos):
+        if prontos == len(HORARIOS):
+            break
         try:
             audio, info = baixar_audio(v["id"])
             arquivo, e = processar(audio, info, lambda s, fim: baixar_trecho(v["id"], s, fim))
             if not a.no_upload:
-                print("  postado:", postar(arquivo, e, info))
+                quando = horario(HORARIOS[prontos])
+                print(f"  {'agendado p/ ' + quando.strftime('%H:%M') if quando else 'postado'}:", postar(arquivo, e, info, quando))
+            prontos += 1
             feitos.add(v["id"])
             HISTORICO.write_text(json.dumps(sorted(feitos)))
             for f in TRAB.glob(f"{v['id']}.*"):  # libera espaço

@@ -1,4 +1,6 @@
-from cortes import SOBRE_IA, Escolha, ajustar, melhor_janela, para_saida, picotar, regioes
+from datetime import datetime
+
+from cortes import FUSO, SOBRE_IA, Escolha, horario, ajustar, melhor_janela, para_saida, picotar, regioes
 
 # gancho (10-14s) toca primeiro, depois o corte (5-50s)
 trechos = [(10, 14), (5, 50)]
@@ -30,4 +32,9 @@ hm[50]["value"], hm[51]["value"], hm[80]["value"], hm[20]["value"] = 0.9, 0.8, 0
 r = regioes({"duration": 7200, "heatmap": hm})
 assert len(r) == 3 and all(b - a == 240 for a, b in r) and r[0][0] > 60, r  # pico 51 fica junto do 50
 assert regioes({"duration": 600}) == [(0, 600)]
+# rodando às 5h: agenda 7h, 12h, 18h de hoje; rodando às 13h, o das 7h e o das 12h saem na hora
+cinco = datetime(2026, 11, 19, 5, 0, tzinfo=FUSO)
+assert [horario(h, cinco).hour for h in ["07:00", "12:00", "18:00"]] == [7, 12, 18]
+assert horario("07:00", cinco.replace(hour=13)) is None and horario("18:00", cinco.replace(hour=13)).hour == 18
+assert horario("07:00", cinco).utcoffset().total_seconds() == -5 * 3600  # novembro em Ohio = UTC-5
 print("ok")
