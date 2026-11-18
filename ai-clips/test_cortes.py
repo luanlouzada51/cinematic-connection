@@ -15,7 +15,7 @@ assert picotar([(0, 3, "um dois tres quatro cinco seis")]) == [(0, 1.5, "um dois
 palavras = [(t, t + 0.5, "x") for t in range(200)]
 e = Escolha(start=10, end=100, hook_start=150, hook_end=155, clima="humor", efeitos=[], titulo="", descricao="", legendas=[])
 s, fim, hs, he = ajustar(e, palavras, 200)
-assert (fim - s) + (he - hs) <= 61 and s <= hs < he <= fim, (s, fim, hs, he)
+assert (fim - s) + (he - hs) <= 60 and s <= hs < he <= fim, (s, fim, hs, he)
 # títulos reais da busca: falam de IA x não falam
 for titulo in ["A IA PODE DESTRUIR A HUMANIDADE? Sérgio Sacani", "AI Bubble: 'Circular financing is over' | Ed Zitron",
                "INTELIGÊNCIA ARTIFICIAL, TÉDIO E MORTE ft. Mario Sergio Cortella", "Jensen OUT as Nvidia CEO"]:

@@ -26,7 +26,7 @@ HISTORICO = AQUI / "feitos.json"
 
 BUSCAS = ["podcast inteligência artificial", "podcast sobre IA", "AI podcast", "AI interview podcast"]
 FILTRO = os.environ.get("FILTRO", "CAMSAggD")  # mais vistos da semana; "CAMSAggC" = só de hoje
-TOP_N = int(os.environ.get("TOP_N", 10))
+TOP_N = int(os.environ.get("TOP_N", 3))
 DURACAO_FONTE = (900, 4 * 3600)  # episódios de 15 min a 4 h
 # o título tem que falar de IA (AI/IA só em maiúscula, pra não pegar "eu ia")
 SOBRE_IA = re.compile(r"\b(AI|IA)\b|(?i:intelig[êe]ncia artificial|artificial intelligence|chatgpt|openai|"
@@ -82,7 +82,9 @@ def duracao(p):
 
 def opts_ytdlp(**kw):
     o = {"quiet": True, "js_runtimes": {"deno": {}, "node": {}}, **kw}
-    if nav := os.environ.get("COOKIES_DO_NAVEGADOR"):  # ex: chrome, firefox, edge
+    if (AQUI / "cookies.txt").exists():  # login da sua conta (Premium), exportado do navegador
+        o["cookiefile"] = str(AQUI / "cookies.txt")
+    elif nav := os.environ.get("COOKIES_DO_NAVEGADOR"):  # ou lê direto do navegador: firefox, chrome, edge
         o["cookiesfrombrowser"] = (nav,)
     return o
 
@@ -237,7 +239,7 @@ def encaixar(palavras, a, b):
 
 def ajustar(e, palavras, dur):
     hl = min(max(e.hook_end - e.hook_start, 2.0), 8.0)
-    s, fim = encaixar(palavras, max(0.0, e.start), min(e.end, dur, e.start + TOTAL - hl))
+    s, fim = encaixar(palavras, max(0.0, e.start), min(e.end, dur, e.start + TOTAL - 1 - hl))
     hs = min(max(e.hook_start, s), fim - hl)
     hs, he = encaixar(palavras, hs, hs + hl)
     return s, fim, hs, he
@@ -328,7 +330,7 @@ def montar(video, offset, nome, segs, e, s, fim, hs, he):
     saida = SAIDA / f"{nome}.mp4"
     sh(["ffmpeg", "-v", "error", "-y", *entradas, "-filter_complex", ";".join(fc), "-map", "[v]", "-map", "[a]",
         "-r", "30", "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-c:a", "aac", "-b:a", "160k",
-        "-movflags", "+faststart", str(saida)], cwd=TRAB)
+        "-movflags", "+faststart", "-t", str(TOTAL), str(saida)], cwd=TRAB)
     return saida
 
 
