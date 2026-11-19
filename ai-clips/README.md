@@ -118,7 +118,7 @@ cd ~/cortes-ia && python3 -m venv .venv && .venv/bin/pip install -r requirements
 # 7. crontab -e  e cole (com sua chave):
 PATH=/opt/homebrew/bin:/usr/bin:/bin
 ANTHROPIC_API_KEY=sk-ant-COLE-AQUI
-0 5 * * * cd ~/cortes-ia && .venv/bin/pip install -q -U yt-dlp; .venv/bin/python cortes.py >> log.txt 2>&1
+0 5 * * * cd ~/cortes-ia && .venv/bin/pip install -q -U "yt-dlp[default]"; .venv/bin/python cortes.py >> log.txt 2>&1
 # e pra acordar o Mac sozinho:
 sudo pmset repeat wakeorpoweron MTWRFSU 04:55:00
 ```
