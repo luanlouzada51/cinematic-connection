@@ -58,7 +58,11 @@ Precisa rodar no seu computador (o YouTube bloqueia download vindo de servidor).
 3. https://console.cloud.google.com/auth/overview → **Começar** → nome do app `Cortes IA` + seu e-mail →
    Público: **Externo** → seu e-mail de contato → aceite → **Criar**.
 4. https://console.cloud.google.com/auth/audience → **Publicar app** → Confirmar.
-   (Sem isso a autorização expira a cada 7 dias.)
+   (Sem isso a autorização expira a cada 7 dias.) Se pedir site/política de privacidade que você não tem:
+   apague os escopos em https://console.cloud.google.com/auth/scopes e o logo em
+   https://console.cloud.google.com/auth/branding, salve e tente publicar de novo.
+   Se ainda assim não deixar: fique em "Em teste", adicione seu e-mail em **Usuários de teste** (mesma página) e
+   rode `python cortes.py --autorizar` uma vez por semana (se esquecer, o `log.txt` avisa).
 5. https://console.cloud.google.com/auth/clients → **Criar cliente** → Tipo: **App para computador** → Criar →
    **Baixar JSON** → renomeie pra **`client_secret.json`** e coloque em `C:\cortes-ia`.
 

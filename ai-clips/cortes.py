@@ -360,7 +360,7 @@ def horario(hhmm, agora=None):
     return quando if quando > agora + timedelta(minutes=15) else None
 
 
-def youtube():
+def youtube(interativo=False):
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
     from google_auth_oauthlib.flow import InstalledAppFlow
@@ -369,9 +369,11 @@ def youtube():
     token = AQUI / "token.json"
     cred = Credentials.from_authorized_user_file(str(token), escopo) if token.exists() else None
     if not cred or not cred.valid:
-        if cred and cred.expired and cred.refresh_token:
+        try:
             cred.refresh(Request())
-        else:  # 1ª vez: abre o navegador pra você autorizar o canal
+        except Exception:  # sem token, ou expirou (app "Em teste" no Google expira a cada 7 dias)
+            if not interativo:  # rodando sozinho às 5h: avisa em vez de travar esperando o navegador
+                sys.exit("Autorização do YouTube expirou ou não existe. Rode:  python cortes.py --autorizar")
             cred = InstalledAppFlow.from_client_secrets_file(str(AQUI / "client_secret.json"), escopo).run_local_server(port=0)
         token.write_text(cred.to_json())
     return build("youtube", "v3", credentials=cred)
@@ -405,7 +407,7 @@ def main():
     for s in (sys.stdout, sys.stderr):  # log do Windows não quebra com emoji no título
         s.reconfigure(errors="replace")
     if a.autorizar:
-        youtube()
+        youtube(interativo=True)
         print("Canal autorizado.")
         return
     for d in (TRAB, SAIDA, SFX):
@@ -419,6 +421,8 @@ def main():
         print(processar(p, info, lambda s, fim: (p, 0))[0])
         return
 
+    if not a.no_upload:
+        youtube()  # confere a autorização antes de gastar meia hora editando
     feitos = set(json.loads(HISTORICO.read_text())) if HISTORICO.exists() else set()
     prontos = 0
     for v in buscar(feitos):
