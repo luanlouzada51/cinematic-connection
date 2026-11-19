@@ -71,8 +71,12 @@ Precisa rodar no seu computador (o YouTube bloqueia download vindo de servidor).
 1. Instale a extensão **Get cookies.txt LOCALLY**:
    Chrome: https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc ·
    Firefox: https://addons.mozilla.org/firefox/addon/get-cookies-txt-locally/
-2. Abra https://www.youtube.com logado na conta Premium → clique na extensão → **Export** →
-   salve como **`C:\cortes-ia\cookies.txt`**.
+2. Deixe a extensão funcionar na janela anônima: Chrome → `chrome://extensions` → Get cookies.txt LOCALLY →
+   Detalhes → **Permitir no modo anônimo**.
+3. Abra uma **janela anônima** (Ctrl+Shift+N), entre no YouTube com a conta Premium, deixe só uma aba aberta em
+   https://www.youtube.com/robots.txt → clique na extensão → **Export** → salve como **`C:\cortes-ia\cookies.txt`**.
+4. **Feche a janela anônima** e não entre mais nela. (Se exportar da janela normal, o YouTube troca os cookies
+   enquanto você navega e eles param de valer em minutos.)
    É o seu login em forma de arquivo: não compartilhe (o `.gitignore` já impede de subir pro GitHub).
 
 ### 6. Testar
@@ -92,7 +96,7 @@ python cortes.py --autorizar
 ### 7. Agendar todo dia às 5h
 No PowerShell (copie tudo de uma vez):
 ```
-$acao = New-ScheduledTaskAction -Execute "cmd.exe" -Argument '/c cd /d C:\cortes-ia && python -m pip install -q -U yt-dlp && python cortes.py >> log.txt 2>&1'
+$acao = New-ScheduledTaskAction -Execute "cmd.exe" -Argument '/c cd /d C:\cortes-ia && python -m pip install -q -U "yt-dlp[default]" && python cortes.py >> log.txt 2>&1'
 $hora = New-ScheduledTaskTrigger -Daily -At 5am
 $cfg  = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable
 Register-ScheduledTask -TaskName "CortesIA" -Action $acao -Trigger $hora -Settings $cfg
@@ -138,7 +142,7 @@ Sons: na 1ª execução são gerados sons simples em `sfx\`. Pra sons melhores, 
 
 ## Se der problema
 - **Erro de login / "Sign in to confirm you're not a bot"**: exporte o `cookies.txt` de novo (passo 5).
-- **Erro de download**: `python -m pip install -U yt-dlp` (a tarefa já faz isso todo dia).
+- **"n challenge solving failed" / "Only images are available"**: `python -m pip install -U "yt-dlp[default]"` (a tarefa já faz isso todo dia).
 - **Vídeos ficam presos em "Privado" e não publicam no horário**: o Google às vezes trava uploads de projetos
   novos da API. Peça a liberação em https://support.google.com/youtube/contact/yt_api_form
 - **Pediu pra autorizar de novo**: apague `token.json` e rode `python cortes.py --autorizar`.
