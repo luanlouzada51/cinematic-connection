@@ -17,7 +17,8 @@ Precisa rodar no seu computador (o YouTube bloqueia download vindo de servidor).
 4. Opcional: foto, banner e descrição em https://studio.youtube.com.
 
 ### 1. Instalar os programas
-1. **Python**: https://www.python.org/downloads/ → baixe e rode o instalador →
+1. **Python 3.14** (não a 3.15: a biblioteca de transcrição ainda não tem versão pra ela no Windows):
+   https://www.python.org/ftp/python/3.14.10/python-3.14.10-amd64.exe → rode o instalador →
    **marque "Add python.exe to PATH"** → Install Now.
 2. Abra o **PowerShell** (menu Iniciar → digite PowerShell) e rode:
    ```
