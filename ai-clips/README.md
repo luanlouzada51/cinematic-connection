@@ -96,13 +96,17 @@ python cortes.py --autorizar
 ### 7. Agendar todo dia às 5h
 No PowerShell (copie tudo de uma vez):
 ```
-$acao = New-ScheduledTaskAction -Execute "cmd.exe" -Argument '/c cd /d C:\cortes-ia && python -m pip install -q -U "yt-dlp[default]" && python cortes.py >> log.txt 2>&1'
+$acao = New-ScheduledTaskAction -Execute "cmd.exe" -Argument '/c cd /d C:\cortes-ia && echo ===== %date% %time% >> log.txt & python -m pip install -q -U "yt-dlp[default]" & python cortes.py >> log.txt 2>&1'
 $hora = New-ScheduledTaskTrigger -Daily -At 5am
-$cfg  = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable
-Register-ScheduledTask -TaskName "CortesIA" -Action $acao -Trigger $hora -Settings $cfg
+$cfg  = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+Register-ScheduledTask -TaskName "CortesIA" -Action $acao -Trigger $hora -Settings $cfg -Force
 ```
+**Só gerar, sem postar** (os cortes ficam em `C:\cortes-ia\saida` pra você postar à mão): troque
+`python cortes.py >> log.txt` por `python cortes.py --no-upload >> log.txt` e rode de novo (o `-Force` substitui a
+tarefa). O título que a IA sugeriu pra cada corte fica no `log.txt`.
 Deixe o PC na tomada e com seu usuário logado (pode ficar bloqueado ou em suspensão: ele acorda sozinho).
 Se ele estiver desligado às 5h, roda assim que ligar; horários que já passaram são postados na hora.
+Pra testar agora: `Start-ScheduledTask CortesIA`.
 O que aconteceu fica em `C:\cortes-ia\log.txt`.
 
 ---
